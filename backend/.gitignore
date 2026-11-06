@@ -1,0 +1,52 @@
+# ============================================================
+# MONVEX Backend — .gitignore
+# ============================================================
+
+# ---------------------------
+# Environment variables
+# NEVER commit real credentials
+# ---------------------------
+.env
+.env.local
+.env.production
+
+# ---------------------------
+# Python virtual environments
+# ---------------------------
+.venv/
+venv/
+env/
+ENV/
+
+# ---------------------------
+# Python bytecode / cache
+# ---------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# ---------------------------
+# Django generated files
+# ---------------------------
+db.sqlite3           # We use PostgreSQL; no SQLite in this project.
+staticfiles/
+media/
+*.log
+
+# ---------------------------
+# Testing
+# ---------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ---------------------------
+# OS / Editor artefacts
+# ---------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
