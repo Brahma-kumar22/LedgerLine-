@@ -19,9 +19,13 @@ import DashboardPage from './pages/dashboard/DashboardPage'
 import AccountsListPage from './pages/accounts/AccountsListPage'
 import AccountDetailPage from './pages/accounts/AccountDetailPage'
 import TransactionsListPage from './pages/transactions/TransactionsListPage'
+import TransactionDetailPage from './pages/transactions/TransactionDetailPage'
 import DepositPage from './pages/transactions/DepositPage'
 import WithdrawPage from './pages/transactions/WithdrawPage'
 import TransferPage from './pages/transactions/TransferPage'
+import AuditPage from './pages/AuditPage'
+import ReconciliationPage from './pages/ReconciliationPage'
+import AdminUsersPage from './pages/AdminUsersPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import NotFoundPage from './pages/NotFoundPage'
 
@@ -45,6 +49,7 @@ function App() {
                 <Route path="/accounts" element={<AccountsListPage />} />
                 <Route path="/accounts/:id" element={<AccountDetailPage />} />
                 <Route path="/transactions" element={<TransactionsListPage />} />
+                <Route path="/transactions/:id" element={<TransactionDetailPage />} />
                 <Route path="/transactions/deposit" element={<DepositPage />} />
                 <Route path="/transactions/withdraw" element={<WithdrawPage />} />
                 <Route path="/transactions/transfer" element={<TransferPage />} />
@@ -54,19 +59,13 @@ function App() {
 
                 {/* Admin + Auditor only */}
                 <Route element={<RoleRoute roles={['ADMIN', 'AUDITOR']} />}>
-                  <Route path="/audit" element={
-                    <PlaceholderPage title="Audit Log" description="System audit trail and compliance records" />
-                  } />
-                  <Route path="/reconciliation" element={
-                    <PlaceholderPage title="Reconciliation" description="Balance verification and ledger integrity checks" />
-                  } />
+                  <Route path="/audit" element={<AuditPage />} />
+                  <Route path="/reconciliation" element={<ReconciliationPage />} />
                 </Route>
 
                 {/* Admin only */}
                 <Route element={<RoleRoute roles={['ADMIN']} />}>
-                  <Route path="/users" element={
-                    <PlaceholderPage title="User Management" description="Manage users, roles, and access" />
-                  } />
+                  <Route path="/users" element={<AdminUsersPage />} />
                 </Route>
               </Route>
             </Route>

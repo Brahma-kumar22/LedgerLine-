@@ -439,6 +439,72 @@ export const apiClient = {
       return data
     },
   },
+  /**
+   * Audit endpoints — ADMIN and AUDITOR only.
+   */
+  audit: {
+    /**
+     * GET /api/audit/
+     * @param {{page?: number, event_type?: string, actor?: string, resource_type?: string, created_at_after?: string, created_at_before?: string}} params
+     * @returns {Promise<object>} paginated audit log entries
+     */
+    async list(params = {}) {
+      const { data } = await api.get('/api/audit/', { params })
+      return data
+    },
+
+    /**
+     * GET /api/audit/{id}/
+     * @param {string} id — UUID
+     * @returns {Promise<object>}
+     */
+    async get(id) {
+      const { data } = await api.get(`/api/audit/${id}/`)
+      return data
+    },
+  },
+
+  /**
+   * Reconciliation endpoint — ADMIN and AUDITOR only.
+   */
+  reconciliation: {
+    /**
+     * GET /api/reconciliation/
+     * Runs reconciliation and returns a report. Read-only.
+     * @returns {Promise<object>} {has_discrepancies, balance_discrepancies, double_entry_violations, orphan_transactions}
+     */
+    async run() {
+      const { data } = await api.get('/api/reconciliation/')
+      return data
+    },
+  },
+
+  /**
+   * Admin user management — ADMIN only.
+   */
+  admin: {
+    users: {
+      /**
+       * GET /api/admin/users/
+       * @param {{page?: number, search?: string, role?: string, is_active?: string}} params
+       * @returns {Promise<object>} paginated user list
+       */
+      async list(params = {}) {
+        const { data } = await api.get('/api/admin/users/', { params })
+        return data
+      },
+
+      /**
+       * GET /api/admin/users/{id}/
+       * @param {string} id — UUID
+       * @returns {Promise<object>}
+       */
+      async get(id) {
+        const { data } = await api.get(`/api/admin/users/${id}/`)
+        return data
+      },
+    },
+  },
 }
 
 export default api

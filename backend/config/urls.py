@@ -9,6 +9,8 @@ from drf_spectacular.views import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from transactions.reconciliation_views import ReconciliationView
+
 urlpatterns = [
     path("admin/", admin.site.urls),
 
@@ -18,12 +20,19 @@ urlpatterns = [
 
     # Users
     path("api/", include("users.urls")),
+    path("api/admin/users/", include("users.admin_urls")),
 
     # Accounts
     path("api/accounts/", include("accounts.urls")),
 
     # Transactions (deposit / withdraw / transfer / list / detail)
     path("api/transactions/", include("transactions.urls")),
+
+    # Reconciliation
+    path("api/reconciliation/", ReconciliationView.as_view(), name="reconciliation"),
+
+    # Audit
+    path("api/audit/", include("audit.urls")),
 
     # API docs
     path("api/schema/", SpectacularAPIView.as_view(),                       name="schema"),

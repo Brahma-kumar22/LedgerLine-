@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Inbox,
   ChevronLeft,
@@ -31,6 +31,7 @@ import { formatCurrency, formatDate, capitalize } from '../../lib/utils'
 
 export default function TransactionsListPage() {
   const { isAccountHolder } = useAuth()
+  const navigate = useNavigate()
   const [transactions, setTransactions] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -141,7 +142,11 @@ export default function TransactionsListPage() {
                     txn.transaction_type === 'DEPOSIT' ||
                     (txn.transaction_type === 'TRANSFER' && !txn.source_account)
                   return (
-                    <tr key={txn.id} className="hover:bg-slate-50">
+                    <tr
+                      key={txn.id}
+                      className="cursor-pointer hover:bg-slate-50"
+                      onClick={() => navigate(`/transactions/${txn.id}`)}
+                    >
                       <td className="py-3 pr-4 text-sm font-medium text-slate-700">
                         {txn.reference}
                       </td>
