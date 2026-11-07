@@ -82,7 +82,6 @@ AI is used to assist with development, debugging, and analysis. All critical fin
 - `npm run lint` passed with exit code 0. Remaining warnings are React Fast Refresh dev-convenience notices (context providers exporting hooks, data-fetching effects calling setState) — standard patterns, not correctness issues.
 - All API endpoints in `src/lib/api.js` match the verified backend contracts from Phase 2.1 inspection.
 
-**Commit:** [Add actual GitHub commit link]
 
 
 ## Entry 4 — 7 November 2026
@@ -175,3 +174,48 @@ AI is used to assist with development, debugging, and analysis. All critical fin
 - All forms display backend field-level errors inline and form-level errors in an alert box.
 
 **Commit:** `0671a1b` — "Phase 3.2: Make all financial interactions functional"
+
+
+## Entry 6 — 7 November 2026
+
+**Task:** Phase 3.3 — Complete transaction details, audit management, admin management, and reconciliation.
+
+**Prompt:** Asked Kiro to implement a complete transaction detail page, secure audit APIs with role-based access, admin user management, reconciliation API and frontend, and verify everything works against the real backend.
+
+**AI output:** Implemented the following:
+
+**Backend (6 new files):**
+- `audit/serializers.py` — Read-only `AuditLogSerializer` with `actor_username` field
+- `audit/views.py` — `AuditLogListView` (paginated, filterable by event_type/actor/resource_type/date range) and `AuditLogDetailView`, both requiring `IsAdminOrAuditor` permission
+- `audit/urls.py` — `/api/audit/` and `/api/audit/{id}/` routes
+- `transactions/reconciliation_views.py` — `ReconciliationView` that runs `run_reconciliation()` and returns a JSON report (read-only, never modifies data), requiring `IsAdminOrAuditor`
+- `users/admin_serializers.py` — `AdminUserListSerializer` (with account_count annotation) and `AdminUserDetailSerializer`
+- `users/admin_views.py` — `AdminUserListView` (searchable by username/email, filterable by role/is_active) and `AdminUserDetailView`, both requiring `IsAdmin` permission
+- `users/admin_urls.py` — `/api/admin/users/` and `/api/admin/users/{id}/` routes
+- `config/urls.py` — Wired all new endpoints
+
+**Frontend (4 new pages + 2 updates):**
+- `TransactionDetailPage` — Full transaction details with reference, type, amount, status, source/destination accounts, timestamps, failure reason, and related ledger entries. Calls `GET /api/transactions/{id}/` and `GET /api/accounts/{id}/statement/` to fetch and display ledger entries.
+- `AuditPage` — Real audit log dashboard with event type filter, paginated table, and detail modal showing full metadata. Calls `GET /api/audit/`.
+- `ReconciliationPage` — Real reconciliation report with status banner (pass/fail), balance discrepancies table, double-entry violations table, and orphan transactions list. Calls `GET /api/reconciliation/`.
+- `AdminUsersPage` — Real user management with search, role filter, paginated table, and detail modal. Calls `GET /api/admin/users/` and `GET /api/admin/users/{id}/`.
+- `TransactionsListPage` — Transaction rows now clickable, navigating to `/transactions/{id}/`.
+- `App.jsx` — Replaced all PlaceholderPages with real pages.
+
+**Issues found:**
+- None. All new code compiled cleanly on first build.
+
+**Verification:**
+- Backend `manage.py check`: 0 issues.
+- `npm run build`: exit 0, 418 KB JS / 29 KB CSS.
+- `npm run lint`: exit 0 (warnings: React Fast Refresh dev-convenience notices only).
+- Unused imports in new files were cleaned up before committing.
+
+**Permission model:**
+- Audit API: `IsAdminOrAuditor` — ADMIN and AUDITOR can read, all others get 403.
+- Reconciliation API: `IsAdminOrAuditor` — same as audit.
+- Admin Users API: `IsAdmin` — only ADMIN can access, AUDITOR gets 403.
+- All audit and reconciliation endpoints are read-only — no create, update, or delete.
+- Reconciliation never modifies financial data — it only reports discrepancies.
+
+**Commit:** `ae43fde` — "Phase 3.3: Transaction details, audit, admin, and reconciliation"
