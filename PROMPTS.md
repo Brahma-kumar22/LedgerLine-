@@ -124,3 +124,54 @@ AI is used to assist with development, debugging, and analysis. All critical fin
 - Note: Live integration testing was partially limited by a temporary Neon PostgreSQL DNS resolution failure during the review session. The bugs were confirmed through code inspection and API responses received before the connection dropped.
 
 **Commit:** `33fb5c3` — "Phase 3.1: Complete frontend architecture + integration review fixes"
+
+
+## Entry 5 — 7 November 2026
+
+**Task:** Phase 3.2 — Make the entire application actually functional. Diagnose non-functional interactions, implement real account creation, deposit, withdrawal, and transfer workflows.
+
+**Prompt:** Asked Kiro to diagnose why the Accounts page displays no accounts, why the New Account button does nothing, implement real account management, implement financial transactions (deposit/withdraw/transfer) with idempotency keys, and complete the remaining application.
+
+**AI output:** Inspected all frontend pages and the App.jsx router to identify every non-functional interaction.
+
+**Issues found:**
+
+1. **Critical — New Account button had no handler**
+   - File: `frontend/src/pages/accounts/AccountsListPage.jsx`
+   - Problem: The "New Account" button had `onClick={() => {/* TODO: create account modal */}}` — an empty function with a TODO comment. Clicking it did nothing. No API request was sent, no modal opened.
+   - Severity: Critical
+   - Correction: Created `CreateAccountModal` component that calls `apiClient.accounts.create()` with form validation, backend error display, toast notification on success, and list refresh. Updated `AccountsListPage` to use the modal.
+
+2. **Critical — No deposit, withdraw, or transfer pages existed**
+   - File: `frontend/src/App.jsx`
+   - Problem: The router had no routes for `/transactions/deposit`, `/transactions/withdraw`, or `/transactions/transfer`. The API client methods existed but were never called from any UI. The dashboard and transactions page had buttons linking to `/transactions` but there was no way to initiate a financial operation.
+   - Severity: Critical
+   - Correction: Created `DepositPage`, `WithdrawPage`, and `TransferPage` components. Each page: fetches the user's accounts, validates input (positive amount, account selected, sufficient balance for withdrawals/transfers), generates a fresh UUID idempotency key per submission, calls the appropriate `apiClient.transactions.*` method, displays backend errors inline, shows a success toast with the transaction reference, and redirects to the account detail page. Added routes in `App.jsx` for all three pages. Added quick action buttons on Dashboard and Transactions list pages.
+
+3. **High — Transaction rows had non-functional onClick**
+   - File: `frontend/src/pages/transactions/TransactionsListPage.jsx`
+   - Problem: Transaction table rows had `onClick={() => {/* Navigate to detail if we add a detail page */}}` — an empty handler.
+   - Severity: High
+   - Correction: Removed the non-functional onClick. Transaction rows are now plain rows without a misleading cursor pointer.
+
+4. **Medium — Dashboard empty state had no action button**
+   - File: `frontend/src/pages/dashboard/DashboardPage.jsx`
+   - Problem: The "No accounts yet" empty state had no call-to-action button, leaving the user with no obvious next step.
+   - Correction: Added a "Create Account" button linking to `/accounts`.
+
+5. **Documented limitation — Audit, Reconciliation, User Management have no backend API endpoints**
+   - The backend has models and admin registrations for audit logs and reconciliation service, but no DRF views or URL routes for these. The frontend pages remain as PlaceholderPages with clear "Coming Soon" messaging rather than pretending to work.
+   - Severity: Not a bug — documented gap for future phases.
+
+**Verification:**
+- `npm run build`: exit 0, 394 KB JS / 28 KB CSS, 0 errors.
+- `npm run lint`: exit 0 (warnings: React Fast Refresh dev-convenience notices only).
+- All new pages import from the existing `apiClient` and use verified backend API contracts.
+- CreateAccountModal calls `POST /api/accounts/` with `{account_type, name, currency}`.
+- DepositPage calls `POST /api/transactions/deposit/` with `{account_id, amount, currency}` + `Idempotency-Key` header.
+- WithdrawPage calls `POST /api/transactions/withdraw/` with the same pattern.
+- TransferPage calls `POST /api/transactions/transfer/` with `{source_account_id, destination_account_id, amount, currency}` + `Idempotency-Key` header.
+- All forms prevent duplicate submissions via `isSubmitting` state and `loading` prop on Button.
+- All forms display backend field-level errors inline and form-level errors in an alert box.
+
+**Commit:** `0671a1b` — "Phase 3.2: Make all financial interactions functional"
