@@ -25,6 +25,7 @@ import {
   ArrowUpRight,
   TrendingUp,
   Inbox,
+  Plus,
 } from 'lucide-react'
 
 import { useAuth } from '../../context/AuthContext'
@@ -112,11 +113,23 @@ export default function DashboardPage() {
         subtitle={`Welcome back, ${user?.first_name || user?.username}`}
         actions={
           isAccountHolder && (
-            <Link to="/accounts">
-              <Button variant="secondary" size="sm" icon={Wallet}>
-                My Accounts
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link to="/transactions/deposit">
+                <Button variant="secondary" size="sm" icon={ArrowDownLeft}>
+                  Deposit
+                </Button>
+              </Link>
+              <Link to="/transactions/withdraw">
+                <Button variant="secondary" size="sm" icon={ArrowUpRight}>
+                  Withdraw
+                </Button>
+              </Link>
+              <Link to="/transactions/transfer">
+                <Button variant="secondary" size="sm" icon={ArrowLeftRight}>
+                  Transfer
+                </Button>
+              </Link>
+            </div>
           )
         }
       />
@@ -277,6 +290,13 @@ export default function DashboardPage() {
             icon={Wallet}
             title="No accounts yet"
             message="Create your first account to start making deposits, withdrawals, and transfers."
+            action={
+              <Link to="/accounts">
+                <Button variant="secondary" size="sm" icon={Plus}>
+                  Create Account
+                </Button>
+              </Link>
+            }
           />
         </Card>
       )}

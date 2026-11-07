@@ -1,16 +1,8 @@
 /**
  * pages/accounts/AccountsListPage.jsx
  *
- * Lists accounts visible to the current user.
- *
- * ACCOUNT_HOLDER: sees only their own accounts.
- * ADMIN / AUDITOR: see all accounts including system accounts.
- *
- * Includes:
- *   - Account cards with balance, type, status
- *   - Create account button (account holders only)
- *   - Empty state
- *   - Error and loading states
+ * Lists accounts visible to the current user with a working "New Account"
+ * modal that calls POST /api/accounts/ and refreshes the list on success.
  */
 
 import { useCallback, useEffect, useState } from 'react'
@@ -29,12 +21,14 @@ import {
   EmptyState,
 } from '../../components/ui'
 import { formatCurrency, capitalize } from '../../lib/utils'
+import CreateAccountModal from '../../components/accounts/CreateAccountModal'
 
 export default function AccountsListPage() {
   const { isAccountHolder } = useAuth()
   const [accounts, setAccounts] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true)
@@ -83,7 +77,7 @@ export default function AccountsListPage() {
         subtitle={customerAccounts.length > 0 ? `${customerAccounts.length} account${customerAccounts.length === 1 ? '' : 's'}` : undefined}
         actions={
           isAccountHolder && (
-            <Button size="sm" icon={Plus} onClick={() => {/* TODO: create account modal */}}>
+            <Button size="sm" icon={Plus} onClick={() => setShowCreateModal(true)}>
               New Account
             </Button>
           )
@@ -96,21 +90,24 @@ export default function AccountsListPage() {
             icon={Wallet}
             title="No accounts yet"
             message="Create your first account to start using MONVEX."
+            action={
+              isAccountHolder && (
+                <Button size="sm" icon={Plus} onClick={() => setShowCreateModal(true)}>
+                  Create Account
+                </Button>
+              )
+            }
           />
         </Card>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {customerAccounts.map((account) => (
-            <Link
-              key={account.id}
-              to={`/accounts/${account.id}`}
-              className="block"
-            >
+            <Link key={account.id} to={`/accounts/${account.id}`} className="block">
               <Card padded className="transition-all hover:border-indigo-300 hover:shadow-md">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50">
-                      <Wallet className="h-4.5 w-4.5 text-indigo-500" />
+                      <Wallet className="h-4 w-4 text-indigo-500" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900">{account.name}</p>
@@ -130,6 +127,12 @@ export default function AccountsListPage() {
           ))}
         </div>
       )}
+
+      <CreateAccountModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={() => fetchAccounts()}
+      />
     </div>
   )
 }

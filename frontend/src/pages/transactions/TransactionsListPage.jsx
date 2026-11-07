@@ -1,28 +1,36 @@
 /**
  * pages/transactions/TransactionsListPage.jsx
  *
- * Lists transactions visible to the current user.
- *
- * ACCOUNT_HOLDER: sees only their own transactions.
- * ADMIN / AUDITOR: see all transactions across the system.
+ * Lists transactions visible to the current user with quick action buttons
+ * for deposit, withdraw, and transfer.
  */
 
 import { useCallback, useEffect, useState } from 'react'
-import { Inbox, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import {
+  Inbox,
+  ChevronLeft,
+  ChevronRight,
+  ArrowDownLeft,
+  ArrowUpRight,
+  ArrowLeftRight,
+} from 'lucide-react'
 
 import { apiClient, ApiError } from '../../lib/api'
+import { useAuth } from '../../context/AuthContext'
 import {
   PageHeader,
   Card,
+  Button,
   Spinner,
   ErrorState,
   EmptyState,
   TransactionStatusBadge,
-  Button,
 } from '../../components/ui'
 import { formatCurrency, formatDate, capitalize } from '../../lib/utils'
 
 export default function TransactionsListPage() {
+  const { isAccountHolder } = useAuth()
   const [transactions, setTransactions] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -71,7 +79,31 @@ export default function TransactionsListPage() {
 
   return (
     <div>
-      <PageHeader title="Transactions" subtitle={`${txns.length} transaction${txns.length === 1 ? '' : 's'}`} />
+      <PageHeader
+        title="Transactions"
+        subtitle={txns.length > 0 ? `${transactions?.count || txns.length} total` : undefined}
+        actions={
+          isAccountHolder && (
+            <div className="flex gap-2">
+              <Link to="/transactions/deposit">
+                <Button variant="secondary" size="sm" icon={ArrowDownLeft}>
+                  Deposit
+                </Button>
+              </Link>
+              <Link to="/transactions/withdraw">
+                <Button variant="secondary" size="sm" icon={ArrowUpRight}>
+                  Withdraw
+                </Button>
+              </Link>
+              <Link to="/transactions/transfer">
+                <Button variant="secondary" size="sm" icon={ArrowLeftRight}>
+                  Transfer
+                </Button>
+              </Link>
+            </div>
+          )
+        }
+      />
 
       {txns.length === 0 ? (
         <Card padded className="mt-6">
@@ -79,6 +111,15 @@ export default function TransactionsListPage() {
             icon={Inbox}
             title="No transactions yet"
             message="Your transaction history will appear here once you make deposits, withdrawals, or transfers."
+            action={
+              isAccountHolder && (
+                <Link to="/transactions/deposit">
+                  <Button variant="secondary" size="sm" icon={ArrowDownLeft}>
+                    Make a deposit
+                  </Button>
+                </Link>
+              )
+            }
           />
         </Card>
       ) : (
@@ -100,16 +141,19 @@ export default function TransactionsListPage() {
                     txn.transaction_type === 'DEPOSIT' ||
                     (txn.transaction_type === 'TRANSFER' && !txn.source_account)
                   return (
-                    <tr
-                      key={txn.id}
-                      className="cursor-pointer hover:bg-slate-50"
-                      onClick={() => {/* Navigate to detail if we add a detail page */}}
-                    >
+                    <tr key={txn.id} className="hover:bg-slate-50">
                       <td className="py-3 pr-4 text-sm font-medium text-slate-700">
                         {txn.reference}
                       </td>
-                      <td className="py-3 pr-4 text-sm text-slate-600">
-                        {capitalize(txn.transaction_type)}
+                      <td className="py-3 pr-4">
+                        <span className="flex items-center gap-1.5 text-sm text-slate-600">
+                          {isCredit ? (
+                            <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-500" />
+                          ) : (
+                            <ArrowUpRight className="h-3.5 w-3.5 text-red-500" />
+                          )}
+                          {capitalize(txn.transaction_type)}
+                        </span>
                       </td>
                       <td className="py-3 pr-4 text-sm tabular-nums font-medium text-slate-700">
                         {isCredit ? '+' : '−'}
@@ -128,7 +172,6 @@ export default function TransactionsListPage() {
             </table>
           </div>
 
-          {/* Pagination */}
           {(hasNext || hasPrev) && (
             <div className="mt-4 flex items-center justify-between">
               <Button

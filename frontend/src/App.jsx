@@ -2,25 +2,7 @@
  * App.jsx
  *
  * Root component for MONVEX frontend.
- *
- * Wires together all providers and routes:
- *   - BrowserRouter (URL routing)
- *   - AuthProvider (session + user state)
- *   - ToastProvider (notification system)
- *
- * Route hierarchy:
- *   /                    → redirect to /dashboard
- *   /login               → LoginPage (PublicRoute — redirect if authed)
- *   /register            → RegisterPage (PublicRoute)
- *   /dashboard           → DashboardPage (ProtectedRoute + AppLayout)
- *   /accounts            → AccountsListPage (ProtectedRoute + AppLayout)
- *   /accounts/:id        → AccountDetailPage (ProtectedRoute + AppLayout)
- *   /transactions        → TransactionsListPage (ProtectedRoute + AppLayout)
- *   /audit               → PlaceholderPage (RoleRoute: ADMIN, AUDITOR)
- *   /users               → PlaceholderPage (RoleRoute: ADMIN)
- *   /reconciliation      → PlaceholderPage (RoleRoute: ADMIN, AUDITOR)
- *   /settings            → PlaceholderPage (ProtectedRoute + AppLayout)
- *   *                    → NotFoundPage
+ * Wires together all providers and routes.
  */
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
@@ -37,6 +19,9 @@ import DashboardPage from './pages/dashboard/DashboardPage'
 import AccountsListPage from './pages/accounts/AccountsListPage'
 import AccountDetailPage from './pages/accounts/AccountDetailPage'
 import TransactionsListPage from './pages/transactions/TransactionsListPage'
+import DepositPage from './pages/transactions/DepositPage'
+import WithdrawPage from './pages/transactions/WithdrawPage'
+import TransferPage from './pages/transactions/TransferPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import NotFoundPage from './pages/NotFoundPage'
 
@@ -46,13 +31,13 @@ function App() {
       <AuthProvider>
         <ToastProvider>
           <Routes>
-            {/* ── Public routes (login, register) ───────────────────────── */}
+            {/* Public routes */}
             <Route element={<PublicRoute />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
             </Route>
 
-            {/* ── Protected routes (require authentication) ─────────────── */}
+            {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
                 {/* All-roles pages */}
@@ -60,6 +45,9 @@ function App() {
                 <Route path="/accounts" element={<AccountsListPage />} />
                 <Route path="/accounts/:id" element={<AccountDetailPage />} />
                 <Route path="/transactions" element={<TransactionsListPage />} />
+                <Route path="/transactions/deposit" element={<DepositPage />} />
+                <Route path="/transactions/withdraw" element={<WithdrawPage />} />
+                <Route path="/transactions/transfer" element={<TransferPage />} />
                 <Route path="/settings" element={
                   <PlaceholderPage title="Settings" description="Manage your profile and preferences" />
                 } />
@@ -83,10 +71,7 @@ function App() {
               </Route>
             </Route>
 
-            {/* ── Root redirect ──────────────────────────────────────────── */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-            {/* ── 404 catch-all ──────────────────────────────────────────── */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </ToastProvider>
