@@ -17,11 +17,13 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = (
             "id", "account_number", "owner", "owner_username",
             "account_type", "name", "currency", "balance",
-            "is_active", "created_at", "updated_at",
+            "is_active", "is_system_account", "account_tag",
+            "created_at", "updated_at",
         )
         read_only_fields = (
             "id", "account_number", "owner", "owner_username",
-            "balance", "created_at", "updated_at",
+            "balance", "is_system_account", "account_tag",
+            "created_at", "updated_at",
         )
 
 

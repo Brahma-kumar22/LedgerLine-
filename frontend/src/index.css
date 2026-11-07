@@ -1,111 +1,364 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+/*
+ * MONVEX Design System
+ * index.css
+ *
+ * Tailwind v4 CSS-first configuration.
+ * All design tokens are defined here via @theme.
+ * Never define tokens in tailwind.config.js for this project.
+ *
+ * TOKEN NAMING:
+ *   --color-*        Color palette and semantic colors
+ *   --font-*         Font families
+ *   --text-*         Font sizes
+ *   --font-weight-*  Font weights
+ *   --radius-*       Border radii
+ *   --shadow-*       Box shadows
+ *   --spacing-*      Spacing scale additions
+ *   --z-*            Z-index layers
+ */
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+@import "tailwindcss";
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ──────────────────────────────────────────────────────────────────────────
+   THEME TOKENS
+   ────────────────────────────────────────────────────────────────────────── */
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+@theme {
+  /* ── Fonts ──────────────────────────────────────────────────────────── */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, "Cascadia Code",
+    Consolas, monospace;
+
+  /* ── Color Palette ─────────────────────────────────────────────────── */
+
+  /* Navy — primary brand color, sidebar background */
+  --color-navy-50:  #f0f3f9;
+  --color-navy-100: #dde4f0;
+  --color-navy-200: #bcc8e1;
+  --color-navy-300: #8da5cc;
+  --color-navy-400: #607db3;
+  --color-navy-500: #415e9a;
+  --color-navy-600: #324b82;
+  --color-navy-700: #253a66;
+  --color-navy-800: #1b2a4a;  /* sidebar active bg */
+  --color-navy-900: #111c35;  /* sidebar base */
+  --color-navy-950: #0a1120;  /* deepest navy */
+
+  /* Slate — neutral surfaces */
+  --color-slate-50:  #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+
+  /* Indigo — primary accent (actions, links, focus rings) */
+  --color-indigo-50:  #eef2ff;
+  --color-indigo-100: #e0e7ff;
+  --color-indigo-200: #c7d2fe;
+  --color-indigo-300: #a5b4fc;
+  --color-indigo-400: #818cf8;
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #4f46e5;  /* primary action */
+  --color-indigo-700: #4338ca;
+  --color-indigo-800: #3730a3;
+  --color-indigo-900: #312e81;
+
+  /* Emerald — success, positive amounts, completed */
+  --color-emerald-50:  #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+
+  /* Amber — warning, pending */
+  --color-amber-50:  #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+
+  /* Red — danger, errors, negative amounts, failed */
+  --color-red-50:  #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+
+  /* Sky — informational */
+  --color-sky-50:  #f0f9ff;
+  --color-sky-100: #e0f2fe;
+  --color-sky-500: #0ea5e9;
+  --color-sky-600: #0284c7;
+  --color-sky-700: #0369a1;
+
+  /* ── Semantic colors ────────────────────────────────────────────────── */
+  /* These are the tokens components should use — not raw palette values. */
+
+  /* Surfaces */
+  --color-surface-page:   var(--color-slate-50);   /* page background */
+  --color-surface-card:   #ffffff;                  /* card/panel background */
+  --color-surface-raised: #ffffff;                  /* modal, dropdown */
+  --color-surface-input:  #ffffff;                  /* form input background */
+  --color-surface-hover:  var(--color-slate-50);    /* row hover */
+  --color-surface-active: var(--color-indigo-50);   /* selected row */
+
+  /* Sidebar */
+  --color-sidebar-bg:      var(--color-navy-900);
+  --color-sidebar-hover:   var(--color-navy-800);
+  --color-sidebar-active:  var(--color-navy-800);
+  --color-sidebar-text:    #a8b8d0;
+  --color-sidebar-text-active: #ffffff;
+  --color-sidebar-border:  rgba(255, 255, 255, 0.08);
+
+  /* Borders */
+  --color-border:        var(--color-slate-200);
+  --color-border-strong: var(--color-slate-300);
+  --color-border-focus:  var(--color-indigo-500);
+
+  /* Text */
+  --color-text-primary:   var(--color-slate-900);
+  --color-text-secondary: var(--color-slate-500);
+  --color-text-tertiary:  var(--color-slate-400);
+  --color-text-disabled:  var(--color-slate-300);
+  --color-text-inverse:   #ffffff;
+  --color-text-link:      var(--color-indigo-600);
+  --color-text-danger:    var(--color-red-600);
+
+  /* Action */
+  --color-action-primary:       var(--color-indigo-600);
+  --color-action-primary-hover: var(--color-indigo-700);
+  --color-action-primary-text:  #ffffff;
+
+  /* Status */
+  --color-status-success-bg:   var(--color-emerald-50);
+  --color-status-success-text: var(--color-emerald-700);
+  --color-status-warning-bg:   var(--color-amber-50);
+  --color-status-warning-text: var(--color-amber-700);
+  --color-status-danger-bg:    var(--color-red-50);
+  --color-status-danger-text:  var(--color-red-700);
+  --color-status-info-bg:      var(--color-sky-50);
+  --color-status-info-text:    var(--color-sky-700);
+  --color-status-neutral-bg:   var(--color-slate-100);
+  --color-status-neutral-text: var(--color-slate-600);
+
+  /* ── Font sizes ─────────────────────────────────────────────────────── */
+  --text-2xs: 0.625rem;   /* 10px — table footnotes */
+  --text-xs:  0.75rem;    /* 12px — captions, badges */
+  --text-sm:  0.8125rem;  /* 13px — secondary text */
+  --text-base: 0.875rem;  /* 14px — body text */
+  --text-md:  0.9375rem;  /* 15px — slightly larger body */
+  --text-lg:  1rem;       /* 16px */
+  --text-xl:  1.125rem;   /* 18px — section headers */
+  --text-2xl: 1.25rem;    /* 20px */
+  --text-3xl: 1.5rem;     /* 24px — page titles */
+  --text-4xl: 1.875rem;   /* 30px — hero numbers */
+  --text-5xl: 2.25rem;    /* 36px */
+
+  /* ── Font weights ───────────────────────────────────────────────────── */
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  /* ── Border radii ───────────────────────────────────────────────────── */
+  --radius-none: 0;
+  --radius-sm:   0.25rem;   /* 4px */
+  --radius-md:   0.375rem;  /* 6px — buttons, inputs */
+  --radius-lg:   0.5rem;    /* 8px — cards */
+  --radius-xl:   0.75rem;   /* 12px — modals */
+  --radius-2xl:  1rem;      /* 16px */
+  --radius-full: 9999px;    /* pills, avatars */
+
+  /* ── Shadows ────────────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --shadow-focus: 0 0 0 3px rgb(99 102 241 / 0.2); /* indigo focus ring */
+
+  /* ── Z-index layers ─────────────────────────────────────────────────── */
+  --z-below:    -1;
+  --z-base:      0;
+  --z-raised:   10;   /* cards, dropdowns relative parent */
+  --z-dropdown: 100;  /* dropdowns */
+  --z-sticky:   200;  /* sticky headers */
+  --z-overlay:  300;  /* modal backdrop */
+  --z-modal:    400;  /* modal content */
+  --z-toast:    500;  /* toast notifications */
+  --z-tooltip:  600;  /* tooltips */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* ──────────────────────────────────────────────────────────────────────────
+   BASE RESET & GLOBAL STYLES
+   ────────────────────────────────────────────────────────────────────────── */
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-page);
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
+  height: 100%;
   min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+/* ── Focus visible — consistent keyboard navigation ring ─── */
+:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+/* Remove focus ring for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+
+/* ── Scrollbar — subtle, non-intrusive ─────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-slate-300);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-slate-400);
+}
+
+/* ── Links ──────────────────────────────────────────────── */
+a {
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Headings reset ─────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.25;
+}
+
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+/* ── Table reset ────────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  width: 100%;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* ── Input / button reset ───────────────────────────────── */
+button {
+  cursor: pointer;
+  font-family: inherit;
 }
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* ── Prevent horizontal overflow at mobile ──────────────── */
+html, body, #root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   UTILITY CLASSES
+   (Supplement Tailwind with MONVEX-specific conveniences)
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Financial amount color helpers */
+.amount-positive { color: var(--color-emerald-600); }
+.amount-negative { color: var(--color-red-600); }
+.amount-neutral  { color: var(--color-text-primary); }
+
+/* Monospaced numbers — prevents layout shift when values change */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Truncate text with ellipsis */
+.truncate-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   ANIMATION KEYFRAMES
+   ────────────────────────────────────────────────────────────────────────── */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* Animation utility classes */
+.animate-fade-in      { animation: fade-in 0.15s ease-out; }
+.animate-fade-in-up   { animation: fade-in-up 0.2s ease-out; }
+.animate-slide-right  { animation: slide-in-right 0.2s ease-out; }
+.animate-slide-left   { animation: slide-in-left 0.25s ease-out; }
+.animate-spin         { animation: spin 1s linear infinite; }
+.animate-skeleton     { animation: skeleton-pulse 1.5s ease-in-out infinite; }
