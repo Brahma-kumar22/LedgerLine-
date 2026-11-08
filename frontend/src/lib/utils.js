@@ -18,7 +18,6 @@ import clsx from 'clsx'
 export function cn(...classes) {
   return clsx(classes)
 }
-
 /**
  * Format a monetary amount for display.
  * Uses Intl.NumberFormat for locale-aware formatting.
@@ -86,6 +85,68 @@ export function truncate(str, maxLen = 50) {
   if (!str) return ''
   if (str.length <= maxLen) return str
   return str.slice(0, maxLen - 1) + '…'
+}
+
+/**
+ * Format a full name or any string into Title Case.
+ * Handles multiple words and trims extra whitespace.
+ *
+ * Examples:
+ *   "brahma kumar"  → "Brahma Kumar"
+ *   "john  doe"     → "John Doe"      (extra space collapsed)
+ *   "ALICE"         → "Alice"
+ *   "alice"         → "Alice"
+ *
+ * Does NOT change stored values — only formats for display.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+export function toTitleCase(str) {
+  if (!str) return ''
+  return str
+    .trim()
+    .replace(/\s+/g, ' ')                            // collapse multiple spaces
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
+/**
+ * Format a MONVEX role code into a human-readable label.
+ *
+ * ACCOUNT_HOLDER → "Account Holder"
+ * ADMIN          → "Admin"
+ * AUDITOR        → "Auditor"
+ *
+ * Falls back to toTitleCase for any unknown role.
+ *
+ * @param {string} role
+ * @returns {string}
+ */
+export function formatRole(role) {
+  const ROLE_LABELS = {
+    ACCOUNT_HOLDER: 'Account Holder',
+    ADMIN:          'Admin',
+    AUDITOR:        'Auditor',
+  }
+  return ROLE_LABELS[role] ?? toTitleCase((role ?? '').replace(/_/g, ' ').toLowerCase())
+}
+
+/**
+ * Get the display name for a user object.
+ * Uses title-cased first + last name when available, otherwise username.
+ *
+ * @param {{ first_name?: string, last_name?: string, username?: string }} user
+ * @returns {string}
+ */
+export function displayName(user) {
+  if (!user) return ''
+  if (user.first_name && user.last_name) {
+    return toTitleCase(`${user.first_name} ${user.last_name}`)
+  }
+  if (user.first_name) return toTitleCase(user.first_name)
+  return user.username || ''
 }
 
 /**

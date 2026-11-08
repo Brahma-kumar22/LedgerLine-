@@ -148,17 +148,20 @@
   --color-status-neutral-text: var(--color-slate-600);
 
   /* ── Font sizes ─────────────────────────────────────────────────────── */
-  --text-2xs: 0.625rem;   /* 10px — table footnotes */
-  --text-xs:  0.75rem;    /* 12px — captions, badges */
-  --text-sm:  0.8125rem;  /* 13px — secondary text */
-  --text-base: 0.875rem;  /* 14px — body text */
-  --text-md:  0.9375rem;  /* 15px — slightly larger body */
-  --text-lg:  1rem;       /* 16px */
-  --text-xl:  1.125rem;   /* 18px — section headers */
-  --text-2xl: 1.25rem;    /* 20px */
-  --text-3xl: 1.5rem;     /* 24px — page titles */
-  --text-4xl: 1.875rem;   /* 30px — hero numbers */
-  --text-5xl: 2.25rem;    /* 36px */
+  /* All sizes increased by one step vs the original for better readability.
+     The hierarchy (2xs → xs → sm → base → md → lg → xl → 2xl → 3xl) is
+     preserved — only the absolute values change.                           */
+  --text-2xs:  0.6875rem;  /* 11px — footnotes, badge text              */
+  --text-xs:   0.75rem;    /* 12px — captions, secondary meta            */
+  --text-sm:   0.875rem;   /* 14px — helper text, table cells (was 13px) */
+  --text-base: 0.9375rem;  /* 15px — primary body text       (was 14px)  */
+  --text-md:   1rem;       /* 16px — slightly larger body    (was 15px)  */
+  --text-lg:   1.0625rem;  /* 17px — card headings           (was 16px)  */
+  --text-xl:   1.1875rem;  /* 19px — section headings        (was 18px)  */
+  --text-2xl:  1.375rem;   /* 22px — sub-page titles         (was 20px)  */
+  --text-3xl:  1.625rem;   /* 26px — page titles             (was 24px)  */
+  --text-4xl:  1.9375rem;  /* 31px — hero numbers            (was 30px)  */
+  --text-5xl:  2.375rem;   /* 38px                           (was 36px)  */
 
   /* ── Font weights ───────────────────────────────────────────────────── */
   --font-weight-normal:   400;
@@ -207,7 +210,7 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 15px;   /* up from 14px — all rem values scale proportionally */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

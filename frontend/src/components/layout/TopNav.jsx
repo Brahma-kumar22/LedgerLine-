@@ -2,11 +2,6 @@
  * components/layout/TopNav.jsx
  *
  * Top navigation bar with mobile menu toggle and user profile dropdown.
- *
- * Contains:
- *   - Mobile hamburger menu (shows sidebar drawer on tap)
- *   - Page title / breadcrumb area (rendered by parent)
- *   - User profile dropdown (profile, settings, logout)
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -14,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { Menu, ChevronDown, LogOut, Settings } from 'lucide-react'
 
 import { useAuth } from '../../context/AuthContext'
-import { cn } from '../../lib/utils'
+import { cn, displayName, formatRole } from '../../lib/utils'
 
 export default function TopNav({ onMenuClick }) {
   const { user, logout } = useAuth()
@@ -22,7 +17,6 @@ export default function TopNav({ onMenuClick }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -43,14 +37,13 @@ export default function TopNav({ onMenuClick }) {
     navigate('/settings')
   }
 
-  const displayName =
-    user?.first_name && user?.last_name
-      ? `${user.first_name} ${user.last_name}`
-      : user?.username || 'User'
+  const name = displayName(user)
+  // Initial for the avatar — first letter of first_name or username
+  const initial = (user?.first_name?.[0] || user?.username?.[0] || '?').toUpperCase()
 
   return (
     <header className="sticky top-0 z-200 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
-      {/* Left: mobile menu button */}
+      {/* Mobile menu button */}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -62,7 +55,7 @@ export default function TopNav({ onMenuClick }) {
         </button>
       </div>
 
-      {/* Right: user profile dropdown */}
+      {/* User profile dropdown */}
       <div className="relative" ref={dropdownRef}>
         <button
           type="button"
@@ -71,30 +64,29 @@ export default function TopNav({ onMenuClick }) {
           aria-expanded={dropdownOpen}
           aria-haspopup="menu"
         >
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-navy-700 text-xs font-semibold text-white">
-            {user?.first_name?.[0] || user?.username?.[0]?.toUpperCase() || '?'}
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
+            {initial}
           </div>
           <span className="hidden text-sm font-medium text-slate-700 sm:inline">
-            {displayName}
+            {name}
           </span>
           <ChevronDown
             className={cn(
-              'h-4 w-4 text-slate-400 transition-transform',
+              'h-4 w-4 text-slate-400 transition-transform duration-150',
               dropdownOpen && 'rotate-180'
             )}
           />
         </button>
 
-        {/* Dropdown menu */}
         {dropdownOpen && (
           <div
             role="menu"
             className="absolute right-0 top-12 w-56 rounded-lg border border-slate-200 bg-white py-1.5 shadow-lg animate-fade-in-up"
           >
-            {/* User info header */}
-            <div className="border-b border-slate-100 px-3 py-2">
-              <p className="truncate text-sm font-medium text-slate-900">{displayName}</p>
+            <div className="border-b border-slate-100 px-3 py-2.5">
+              <p className="truncate text-sm font-semibold text-slate-900">{name}</p>
               <p className="truncate text-xs text-slate-500">{user?.email}</p>
+              <p className="mt-0.5 text-xs text-slate-400">{formatRole(user?.role)}</p>
             </div>
 
             <button
