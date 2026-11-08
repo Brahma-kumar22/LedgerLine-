@@ -219,3 +219,54 @@ AI is used to assist with development, debugging, and analysis. All critical fin
 - Reconciliation never modifies financial data — it only reports discrepancies.
 
 **Commit:** `ae43fde` — "Phase 3.3: Transaction details, audit, admin, and reconciliation"
+
+
+## Entry 7 — 8 November 2026
+
+**Task:** Phase 3.4 — Frontend UI Polish: fix sidebar collapse, remove duplicate headings, proper name capitalisation, MONVEX favicon, and typography improvements.
+
+**Prompt:** Asked Kiro to fix the sidebar collapse button (was not wired), remove the duplicate page heading appearing in both breadcrumb and PageHeader, display user names in proper Title Case, replace the default Vite favicon with a MONVEX branded icon, and improve typography readability across the application. Preserve all existing design identity.
+
+**AI output:** Inspected AppLayout, Sidebar, Breadcrumbs, TopNav, utils.js, and index.css before making any changes. Identified five distinct issues.
+
+**Issues found and fixed:**
+
+1. **Critical — Sidebar collapse button not wired**
+   - Files: `AppLayout.jsx`, `Sidebar.jsx`
+   - Problem: The previous prompt added `collapsed` and `onToggle` props to `DesktopSidebar`, and implemented the button inside it, but `AppLayout.jsx` was never updated — it still called `<DesktopSidebar />` with no props. The button rendered in the DOM but clicking it called `undefined`, so nothing happened.
+   - Fix: Added `const [sidebarCollapsed, setSidebarCollapsed] = useState(false)` to `AppLayout`, passed `collapsed={sidebarCollapsed}` and `onToggle={() => setSidebarCollapsed(c => !c)}` to `DesktopSidebar`. Added `transition-[width] duration-200` on the aside and `min-w-0` on the content column to prevent overflow during the transition.
+
+2. **High — Duplicate page headings**
+   - Files: `Breadcrumbs.jsx`, `AppLayout.jsx`
+   - Problem: `AppLayout` renders `<Breadcrumbs>` which showed "Dashboard" as the current segment, and `DashboardPage` renders `<PageHeader title="Dashboard">`. Both appeared on screen simultaneously. Same issue on every top-level route.
+   - Fix: `Breadcrumbs` now returns `null` when there is only one path segment (`segments.length <= 1`). Single-level routes get their title exclusively from `PageHeader`. Multi-level routes (e.g. `/accounts/:id`, `/transactions/deposit`) still show the breadcrumb trail as a navigation aid.
+
+3. **Medium — Names in all-lowercase**
+   - Files: `utils.js`, `TopNav.jsx`, `Sidebar.jsx`
+   - Problem: User names from the backend were rendered as-received (e.g. "brahma kumar"). No title-case formatting was applied.
+   - Fix: Added three new utilities to `utils.js`:
+     - `toTitleCase(str)` — converts any string to Title Case with space normalisation
+     - `formatRole(role)` — maps `ACCOUNT_HOLDER→"Account Holder"`, `ADMIN→"Admin"`, `AUDITOR→"Auditor"`
+     - `displayName(user)` — returns title-cased full name or username
+   - Applied these in `TopNav` (display name + role in dropdown) and `Sidebar` (user footer). Avatar initials also corrected to use the first letter of `first_name`.
+
+4. **Low — Default Vite/React favicon**
+   - File: `public/favicon.svg`
+   - Problem: The browser tab showed the default Vite orange lightning bolt icon.
+   - Fix: Replaced with a 32×32 SVG: indigo-600 rounded square background with a bold white "M" letterform, matching the MONVEX brand identity. `index.html` already referenced `/favicon.svg` — no HTML changes needed.
+
+5. **Low — Typography too small**
+   - Files: `index.css`
+   - Problem: Base font size was 16px CSS root but `--text-base` token was 0.875rem (14px). Body text at 14px is below the comfortable reading threshold for a financial dashboard.
+   - Fix: Changed `html { font-size: 15px }` (from 16px) so all `rem`-based tokens scale proportionally upward. Updated the `--text-*` token scale: `--text-base` now resolves to ~15px, `--text-sm` to ~14px, page titles to ~26px. The hierarchy and proportions are unchanged.
+
+**Verification:**
+- `npm run build`: exit 0, 422 KB JS.
+- `npm run lint`: exit 0. No new warnings introduced.
+- Sidebar: collapse button now toggles width between 240px (w-60) and 64px (w-16) with smooth CSS transition.
+- Breadcrumbs: `/dashboard` shows no breadcrumb; `/accounts/:id` shows "Accounts > abc-12…".
+- Names: "brahma kumar" → "Brahma Kumar" in TopNav and Sidebar.
+- Favicon: custom MONVEX indigo-M icon visible in browser tab.
+- Typography: body text visibly larger without breaking any table or card layouts.
+
+**Commit:** `1760591` — "Phase 3.4: Sidebar collapse, dedup headings, title-case names, favicon, typography"
