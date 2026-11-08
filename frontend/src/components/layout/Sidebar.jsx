@@ -20,6 +20,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { cn, displayName, formatRole } from '../../lib/utils'
 import { getNavItemsForRole } from './navConfig'
+import MonvexLogo from '../ui/MonvexLogo'
 
 // ── Logo ──────────────────────────────────────────────────────────────────────
 
@@ -31,9 +32,9 @@ function Logo({ collapsed }) {
         collapsed ? 'justify-center px-0' : 'gap-2.5 px-5'
       )}
     >
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600">
-        <span className="text-sm font-bold text-white">M</span>
-      </div>
+      {/* Brand icon — gradient M, no background square needed */}
+      <MonvexLogo size={32} className="shrink-0" />
+
       {!collapsed && (
         <div className="flex flex-col overflow-hidden">
           <span className="text-sm font-semibold tracking-wide text-white">MONVEX</span>

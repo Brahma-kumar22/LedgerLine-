@@ -17,7 +17,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 import { useAuth } from '../../context/AuthContext'
-import { Button, Input, PasswordInput } from '../../components/ui'
+import { Button, Input, PasswordInput, MonvexLogo } from '../../components/ui'
 import { ApiError } from '../../lib/api'
 
 export default function RegisterPage() {
@@ -145,8 +145,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600">
-            <span className="text-xl font-bold text-white">M</span>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+            <MonvexLogo size={56} />
           </div>
           <h1 className="text-2xl font-semibold text-slate-900">Create your account</h1>
           <p className="mt-1 text-sm text-slate-500">

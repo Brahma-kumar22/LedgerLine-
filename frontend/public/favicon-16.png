@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!--
+      Gradient palette traced from the brand image:
+        Left leg  : deep violet  #7c3aed → soft lavender #c4b5fd
+        Right leg : hot pink    #e879f9 → deep purple  #6d28d9
+        Diagonal  : indigo      #6d28d9 → violet      #a855f7
+    -->
+    <linearGradient id="gLeft" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+    <linearGradient id="gRight" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#f0abfc"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="gDiag" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#6d28d9"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+
+  <!--
+    M letterform with three rounded-pill legs and a diagonal ribbon cross-stroke.
+    Built from rounded rectangles (rx="9") rotated into position,
+    matching the proportions in the attached image.
+  -->
+
+  <!-- Left leg of M — vertical pill, rounded top-left cap -->
+  <rect x="4"  y="6"  width="22" height="70" rx="11" fill="url(#gLeft)" transform="rotate(-1 15 41)"/>
+
+  <!-- Right leg of M — vertical pill with open bottom (arch = inner ellipse cutout implied by shape) -->
+  <rect x="73" y="28" width="22" height="52" rx="11" fill="url(#gRight)"/>
+
+  <!-- Right-top arm of M — angled pill descending from top-right -->
+  <rect x="54" y="4"  width="22" height="62" rx="11" fill="url(#gRight)" transform="rotate(26 65 35)"/>
+
+  <!-- Left-top arm of M — angled pill descending from top-left toward center -->
+  <rect x="22" y="4"  width="22" height="62" rx="11" fill="url(#gLeft)"  transform="rotate(-26 33 35)"/>
+
+  <!-- Diagonal ribbon / cross-stroke — the distinctive flowing band -->
+  <rect x="10" y="42" width="80" height="20" rx="10" fill="url(#gDiag)"  transform="rotate(-30 50 52)"/>
+</svg>
