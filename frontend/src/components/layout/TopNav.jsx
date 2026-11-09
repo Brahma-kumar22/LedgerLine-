@@ -10,7 +10,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Menu, ChevronDown, LogOut, Settings, User } from 'lucide-react'
+import { Menu, ChevronDown, LogOut, Settings } from 'lucide-react'
 
 import { useAuth } from '../../context/AuthContext'
 import { cn, displayName, formatRole } from '../../lib/utils'

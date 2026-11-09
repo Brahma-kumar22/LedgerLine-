@@ -10,8 +10,8 @@ import { cn } from '../../lib/utils'
 
 const SIZES = {
   sm: 'h-8 text-sm',
-  md: 'h-9.5 text-sm',
-  lg: 'h-11 text-md',
+  md: 'h-10 text-sm',
+  lg: 'h-11 text-base',
 }
 
 const Input = forwardRef(function Input(

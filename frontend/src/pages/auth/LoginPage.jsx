@@ -9,6 +9,8 @@ import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { LogIn, AlertCircle } from 'lucide-react'
 
+const CURRENT_YEAR = new Date().getFullYear()
+
 import { useAuth } from '../../context/AuthContext'
 import { Button, Input, PasswordInput, MonvexLogo } from '../../components/ui'
 import { ApiError } from '../../lib/api'
@@ -91,7 +93,7 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        <p className="text-xs text-slate-600">© {new Date().getFullYear()} MONVEX. All rights reserved.</p>
+        <p className="text-xs text-slate-600">© {CURRENT_YEAR} MONVEX. All rights reserved.</p>
       </div>
 
       {/* Right form panel */}

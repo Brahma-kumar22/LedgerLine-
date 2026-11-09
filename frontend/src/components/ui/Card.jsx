@@ -22,7 +22,7 @@ export function Card({ children, className, padded = true, ...props }) {
   )
 }
 
-export function CardHeader({ children, title, subtitle, action, className }) {
+export function CardHeader({ children, title, subtitle, action }) {
   return (
     <div className="mb-4 flex items-start justify-between gap-4">
       <div>
@@ -39,8 +39,8 @@ export function CardHeader({ children, title, subtitle, action, className }) {
   )
 }
 
-export function CardBody({ children, className: _c }) {
-  return <div className={_c}>{children}</div>
+export function CardBody({ children, className: _className }) {
+  return <div className={_className}>{children}</div>
 }
 
 export default Card

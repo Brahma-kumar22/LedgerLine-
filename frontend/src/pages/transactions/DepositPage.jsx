@@ -13,7 +13,7 @@ import { apiClient, ApiError } from '../../lib/api'
 import {
   PageHeader, Card, Button, Input, Select, Spinner, ErrorState, useToast,
 } from '../../components/ui'
-import { formatCurrency, generateUUID, cn } from '../../lib/utils'
+import { formatCurrency, generateUUID } from '../../lib/utils'
 
 const CURRENCIES = ['USD', 'EUR', 'GBP']
 

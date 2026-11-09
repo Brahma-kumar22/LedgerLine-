@@ -30,45 +30,29 @@ import MonvexLogo from '../ui/MonvexLogo'
 
 function BrandHeader({ collapsed, onToggle }) {
   return (
-    <div
-      className={cn(
-        'flex items-center border-b border-white/8',
-        collapsed
-          ? 'flex-col gap-2 px-0 py-4'
-          : 'flex-row justify-between px-4 py-4'
-      )}
-    >
-      {/* Logo + wordmark */}
-      <div className={cn('flex items-center', collapsed ? 'justify-center' : 'gap-3')}>
-        <MonvexLogo size={32} className="shrink-0" />
+    <div className="flex items-center border-b border-white/8 px-4 py-3.5">
+      {/* Logo + wordmark — shrinks to just logo when collapsed */}
+      <div className="flex flex-1 items-center gap-3 min-w-0">
+        <MonvexLogo size={30} className="shrink-0" />
         {!collapsed && (
           <div className="flex min-w-0 flex-col">
-            <span className="text-sm font-bold tracking-wider text-white">
-              MONVEX
-            </span>
-            <span className="text-2xs leading-tight text-slate-400">
-              Move Money. Maintain Trust.
-            </span>
+            <span className="text-sm font-bold tracking-wider text-white">MONVEX</span>
+            <span className="text-2xs leading-tight text-slate-400">Move Money. Maintain Trust.</span>
           </div>
         )}
       </div>
 
-      {/* Collapse / expand toggle — inline, not floating */}
+      {/* Collapse / expand toggle — always right-aligned in the header */}
       {onToggle && (
         <button
           type="button"
           onClick={onToggle}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className={cn(
-            'flex h-7 w-7 shrink-0 items-center justify-center rounded-md',
-            'text-slate-400 hover:bg-navy-700 hover:text-slate-200',
-            'transition-colors duration-150',
-            collapsed && 'mt-1'
-          )}
+          className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded text-slate-500 hover:bg-navy-700 hover:text-slate-200 transition-colors duration-150"
         >
           {collapsed
-            ? <ChevronRight className="h-4 w-4" />
-            : <ChevronLeft  className="h-4 w-4" />
+            ? <ChevronRight className="h-3.5 w-3.5" />
+            : <ChevronLeft  className="h-3.5 w-3.5" />
           }
         </button>
       )}
@@ -105,7 +89,7 @@ function NavItem({ item, collapsed, onNavigate }) {
           className={cn(
             'shrink-0 transition-colors duration-150',
             isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300',
-            'h-4.5 w-4.5'
+            'h-[18px] w-[18px]'
           )}
           aria-hidden="true"
         />
