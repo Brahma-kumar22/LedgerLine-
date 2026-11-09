@@ -310,3 +310,101 @@ AI is used to assist with development, debugging, and analysis. All critical fin
 - All 17 changed files confirmed by git diff
 
 **Commit:** `7fbd533` — "Phase 3.4: Premium UI transformation"
+
+
+## Entry 9 — 9 November 2026
+
+**Task:** Phase 3.4 continued — brand assets, sidebar, UI polish, database diagnosis, and lint clean-up.
+
+**Prompt:** Fix the MONVEX branding (use actual PNG, not SVG recreation), fix sidebar collapse button positioning, fix h-9.5 height values, remove all remaining lint warnings, diagnose Neon database connectivity failure, and commit with meaningful messages.
+
+**AI output and findings:**
+
+### TASK 1 — Brand assets
+
+**Problem identified:** `MonvexLogo.jsx` was recreating the brand icon using SVG paths and gradients. The requirement is to use the actual PNG asset directly.
+
+**Fix:** Rewrote `MonvexLogo` as:
+```jsx
+<img src="/monvex-logo.png" width={size} height={size}
+     style={{objectFit:'contain'}} alt="MONVEX logo" />
+```
+The PNG must be placed at `frontend/public/monvex-logo.png`. The component renders it faithfully at any size without distortion or recreation.
+
+**Favicon:** Updated `index.html` to list PNG favicons first (primary) and SVG as fallback. Updated `favicon.svg` to a clean purple gradient M as a browser-fallback-only asset.
+
+**Commit:** `c7c7d14` — "Fix MONVEX brand assets and favicon implementation"
+
+---
+
+### TASK 2 — Sidebar collapse button
+
+**Problem identified:** The `BrandHeader` function was using flex-direction column in collapsed mode, which stacked the logo and toggle button vertically — awkward and misaligned.
+
+**Fix:** Rewrote `BrandHeader` to always use a single horizontal row (`flex items-center`). In collapsed mode the wordmark is hidden, leaving only the logo and the toggle button still right-aligned. The toggle is a small `h-6 w-6` rounded button with a directional chevron (`ChevronLeft`/`ChevronRight`), positioned at the right edge via `ml-1` on the flex row.
+
+---
+
+### TASK 3 — UI/lint fixes
+
+**h-9.5 in Button/Input/Select/PasswordInput:** Tailwind v4 does not generate `h-9.5` (9.5 × 4px fractional value). Changed to `h-10` (standard 40px) across all four components.
+
+**h-4.5/w-4.5 in Sidebar NavItem icon:** Same issue. Changed to `h-[18px] w-[18px]` (explicit arbitrary value).
+
+**text-md in Button/Input:** `text-md` is not a standard Tailwind token. Changed to `text-base`.
+
+**Lint warnings eliminated:**
+- `User` unused import in `TopNav.jsx` — removed
+- `cn` unused import in `DepositPage.jsx` — removed
+- `new Date()` impure call in `LoginPage.jsx` and `RegisterPage.jsx` — moved to `CURRENT_YEAR` module-level constants
+- `CardHeader` unused `className` parameter — removed from props
+- `CardBody` parameter rename `_c` → `_className` to satisfy linter convention
+
+**Commit:** `f040675` — "Polish sidebar navigation and premium UI consistency"
+
+---
+
+### TASK 4 — Neon database connectivity diagnosis
+
+**Error:** `psycopg.OperationalError: failed to resolve host`
+
+**Investigation (no credentials exposed):**
+
+```
+Configured host: ep-divine-heart-aoh32kr0.c-2.ap-southeast-1.aws.neon.tech
+Scheme:          postgresql
+Database:        neondb
+```
+
+1. **DNS resolution:** RESOLVED correctly.
+   - CNAME → `c-2.ap-southeast-1.aws.neon.tech`
+   - A records: `3.0.167.45`, `13.251.17.193`, `18.138.49.39` (all AWS AP-Southeast-1)
+   - DNS is working correctly. The hostname and endpoint identifier are valid.
+
+2. **TCP port 5432:** BLOCKED on all resolved IPv4 addresses. `Test-NetConnection` times out on all three IPs. This is NOT a DNS failure — the error message "failed to resolve host" is psycopg3's generic connection error message even when TCP is the actual failure point.
+
+3. **Baseline connectivity:** Outbound TCP to `8.8.8.8:53` succeeds — general outbound TCP works. Port 5432 is specifically blocked, most likely by a local firewall, ISP, corporate network policy, or VPN.
+
+4. **Django system check:** Passes cleanly — backend code is correctly configured. The only issue is the network-level block on port 5432 outbound from this machine.
+
+**Resolution path:**
+- Option A: Use Neon's connection pooler hostname (port 6543) if the network allows it
+- Option B: Connect via a VPN that permits outbound port 5432
+- Option C: Run tests from a different network (e.g. mobile hotspot, cloud VM)
+- Option D: Check whether the Neon project endpoint needs to be resumed in the Neon console (Neon suspends idle compute after inactivity)
+
+**Status:** Database connectivity NOT confirmed fixed. Backend tests BLOCKED by port 5432 outbound block. Frontend tests and Django system checks pass independently.
+
+---
+
+### Final build/lint verification
+
+```
+npm run build → exit 0 (560ms)
+npm run lint  → exit 0 (0 errors, 0 fixable warnings)
+Django manage.py check → 0 issues
+```
+
+**Commits:**
+- `c7c7d14` — Fix MONVEX brand assets and favicon implementation
+- `f040675` — Polish sidebar navigation and premium UI consistency
