@@ -3,13 +3,20 @@
   <head>
     <meta charset="UTF-8" />
 
-    <!-- ── Favicons — MONVEX brand icon ── -->
-    <!-- Primary: SVG (modern browsers, scales perfectly at any size) -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- Fallback: PNG at common sizes -->
+    <!--
+      MONVEX favicons — generated from the official brand PNG.
+
+      REQUIRED FILES in frontend/public/:
+        monvex-logo.png        — the original brand PNG asset
+        favicon-32.png         — 32x32 crop/resize of monvex-logo.png
+        favicon-16.png         — 16x16 crop/resize of monvex-logo.png
+        apple-touch-icon.png   — 180x180 for iOS home screen
+
+      The SVG favicon.svg may be kept as a fallback but the PNG is primary.
+    -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
-    <!-- Apple touch icon for iOS home screen / bookmarks -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,11 +24,6 @@
 
     <title>MONVEX — Move Money. Maintain Trust.</title>
 
-    <!--
-      Inter is the primary typeface for MONVEX.
-      We load only the weights we actually use: 400, 500, 600, 700.
-      display=swap prevents invisible text during font load.
-    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

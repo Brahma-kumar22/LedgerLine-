@@ -1,110 +1,40 @@
 /**
  * components/ui/MonvexLogo.jsx
  *
- * Official MONVEX brand icon as an inline SVG React component.
+ * Official MONVEX brand icon.
  *
- * The gradient M letterform with diagonal ribbon cross-stroke,
- * purple → violet → pink palette, on a transparent background.
+ * IMPLEMENTATION:
+ *   Uses the actual PNG asset supplied with the brand kit.
+ *   The PNG must be placed at:
+ *     frontend/public/monvex-logo.png
  *
- * BUG FIX: SVG gradient `id` attributes must be unique per document.
- * Previously the IDs were hardcoded (`ml-gLeft` etc.), which caused
- * gradient references to cross-pollinate when two MonvexLogo instances
- * rendered on the same page (e.g. sidebar + a modal).
+ *   It is served as a static asset by Vite from /public/ — no import needed.
+ *   The URL is /monvex-logo.png in both development and production builds.
  *
- * Fix: `useId()` generates a React-stable unique string per component
- * instance. Gradient IDs are prefixed with this string so they are
- * unique across the DOM regardless of how many instances are rendered.
+ *   Requirements met:
+ *   ✓ Uses the exact supplied PNG — no SVG recreation
+ *   ✓ Preserves original gradients, transparency and glow
+ *   ✓ Never stretches or distorts (object-contain)
+ *   ✓ Works on dark (sidebar) and light (auth pages) backgrounds
+ *   ✓ Accessible: role="img" + aria-label
+ *   ✓ Square 1:1 aspect ratio enforced via width/height props
  *
  * Props:
- *   size      — number (px applied to width and height). Default 40.
- *   className — additional CSS classes.
+ *   size      — pixel size for both width and height (default 40)
+ *   className — additional Tailwind/CSS classes
  */
 
-import { useId } from 'react'
-
 export default function MonvexLogo({ size = 40, className = '' }) {
-  const uid = useId().replace(/:/g, '')  // useId returns ":r0:" etc — strip colons for valid SVG IDs
-
-  const ids = {
-    gLeft:  `${uid}-gLeft`,
-    gRight: `${uid}-gRight`,
-    gDiag:  `${uid}-gDiag`,
-    gArmR:  `${uid}-gArmR`,
-  }
-
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 100 100"
+    <img
+      src="/monvex-logo.png"
+      alt="MONVEX logo"
+      role="img"
       width={size}
       height={size}
-      fill="none"
-      aria-label="MONVEX logo"
-      role="img"
+      style={{ width: size, height: size, objectFit: 'contain', display: 'block' }}
       className={className}
-    >
-      <defs>
-        <linearGradient id={ids.gLeft} x1="0" y1="0" x2="0.2" y2="1">
-          <stop offset="0%"   stopColor="#7c3aed" />
-          <stop offset="100%" stopColor="#c4b5fd" />
-        </linearGradient>
-
-        <linearGradient id={ids.gRight} x1="1" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#f0abfc" />
-          <stop offset="60%"  stopColor="#a855f7" />
-          <stop offset="100%" stopColor="#7c3aed" />
-        </linearGradient>
-
-        <linearGradient id={ids.gDiag} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#5b21b6" />
-          <stop offset="100%" stopColor="#a855f7" />
-        </linearGradient>
-
-        <linearGradient id={ids.gArmR} x1="1" y1="0" x2="0.5" y2="1">
-          <stop offset="0%"   stopColor="#f0abfc" />
-          <stop offset="100%" stopColor="#8b5cf6" />
-        </linearGradient>
-      </defs>
-
-      {/* Left vertical leg */}
-      <rect
-        x="5" y="8" width="21" height="66"
-        rx="10.5"
-        fill={`url(#${ids.gLeft})`}
-        transform="rotate(-1 15.5 41)"
-      />
-
-      {/* Right vertical leg */}
-      <rect
-        x="73" y="32" width="21" height="48"
-        rx="10.5"
-        fill={`url(#${ids.gRight})`}
-      />
-      <ellipse cx="83.5" cy="72" rx="8" ry="9" fill="white" />
-
-      {/* Left-top descending arm */}
-      <rect
-        x="13" y="5" width="21" height="60"
-        rx="10.5"
-        fill={`url(#${ids.gLeft})`}
-        transform="rotate(-28 23.5 35)"
-      />
-
-      {/* Right-top descending arm */}
-      <rect
-        x="52" y="5" width="21" height="60"
-        rx="10.5"
-        fill={`url(#${ids.gArmR})`}
-        transform="rotate(28 62.5 35)"
-      />
-
-      {/* Diagonal ribbon cross-stroke */}
-      <rect
-        x="8" y="43" width="82" height="19"
-        rx="9.5"
-        fill={`url(#${ids.gDiag})`}
-        transform="rotate(-32 49 52.5)"
-      />
-    </svg>
+      draggable={false}
+    />
   )
 }
