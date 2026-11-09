@@ -1,13 +1,12 @@
 /**
  * pages/accounts/AccountsListPage.jsx
  *
- * Lists accounts visible to the current user with a working "New Account"
- * modal that calls POST /api/accounts/ and refreshes the list on success.
+ * Premium account cards with real API data.
  */
 
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Wallet, Plus } from 'lucide-react'
+import { Wallet, Plus, ChevronRight, CreditCard, PiggyBank } from 'lucide-react'
 
 import { useAuth } from '../../context/AuthContext'
 import { apiClient, ApiError } from '../../lib/api'
@@ -20,14 +19,26 @@ import {
   ErrorState,
   EmptyState,
 } from '../../components/ui'
-import { formatCurrency, capitalize } from '../../lib/utils'
+import { formatCurrency, capitalize, cn } from '../../lib/utils'
 import CreateAccountModal from '../../components/accounts/CreateAccountModal'
+
+const TYPE_ICON = {
+  CHECKING: CreditCard,
+  SAVINGS:  PiggyBank,
+  WALLET:   Wallet,
+}
+
+const TYPE_COLORS = {
+  CHECKING: 'bg-indigo-50 text-indigo-600',
+  SAVINGS:  'bg-emerald-50 text-emerald-600',
+  WALLET:   'bg-amber-50 text-amber-600',
+}
 
 export default function AccountsListPage() {
   const { isAccountHolder } = useAuth()
-  const [accounts, setAccounts] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [accounts, setAccounts]       = useState(null)
+  const [loading, setLoading]         = useState(true)
+  const [error, setError]             = useState(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
 
   const fetchAccounts = useCallback(async () => {
@@ -35,7 +46,7 @@ export default function AccountsListPage() {
     setError(null)
     try {
       const res = await apiClient.accounts.list({ page: 1 })
-      setAccounts(res.results || res)
+      setAccounts(res.results ?? res)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load accounts')
     } finally {
@@ -43,17 +54,15 @@ export default function AccountsListPage() {
     }
   }, [])
 
-  useEffect(() => {
-    fetchAccounts()
-  }, [fetchAccounts])
+  useEffect(() => { fetchAccounts() }, [fetchAccounts])
+
+  const customerAccounts = (accounts || []).filter((a) => !a.is_system_account)
 
   if (loading) {
     return (
       <div>
         <PageHeader title="Accounts" />
-        <div className="mt-6 flex min-h-[300px] items-center justify-center">
-          <Spinner size="xl" />
-        </div>
+        <div className="mt-10 flex items-center justify-center"><Spinner size="xl" /></div>
       </div>
     )
   }
@@ -62,19 +71,18 @@ export default function AccountsListPage() {
     return (
       <div>
         <PageHeader title="Accounts" />
-        <ErrorState message={error} onRetry={fetchAccounts} className="mt-6" />
+        <ErrorState message={error} onRetry={fetchAccounts} className="mt-8" />
       </div>
     )
   }
 
-  const accountList = accounts || []
-  const customerAccounts = accountList.filter((a) => !a.is_system_account)
-
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Accounts"
-        subtitle={customerAccounts.length > 0 ? `${customerAccounts.length} account${customerAccounts.length === 1 ? '' : 's'}` : undefined}
+        subtitle={customerAccounts.length > 0
+          ? `${customerAccounts.length} account${customerAccounts.length !== 1 ? 's' : ''}`
+          : undefined}
         actions={
           isAccountHolder && (
             <Button size="sm" icon={Plus} onClick={() => setShowCreateModal(true)}>
@@ -85,11 +93,11 @@ export default function AccountsListPage() {
       />
 
       {customerAccounts.length === 0 ? (
-        <Card padded className="mt-6">
+        <Card padded>
           <EmptyState
             icon={Wallet}
             title="No accounts yet"
-            message="Create your first account to start using MONVEX."
+            message="Create your first account to start making deposits, withdrawals, and transfers."
             action={
               isAccountHolder && (
                 <Button size="sm" icon={Plus} onClick={() => setShowCreateModal(true)}>
@@ -100,31 +108,63 @@ export default function AccountsListPage() {
           />
         </Card>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {customerAccounts.map((account) => (
-            <Link key={account.id} to={`/accounts/${account.id}`} className="block">
-              <Card padded className="transition-all hover:border-indigo-300 hover:shadow-md">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50">
-                      <Wallet className="h-4 w-4 text-indigo-500" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {customerAccounts.map((account) => {
+            const Icon   = TYPE_ICON[account.account_type] || Wallet
+            const colors = TYPE_COLORS[account.account_type] || 'bg-slate-100 text-slate-600'
+            return (
+              <Link key={account.id} to={`/accounts/${account.id}`} className="group block">
+                <Card
+                  padded={false}
+                  className="overflow-hidden transition-all duration-150 hover:border-indigo-200 hover:shadow-md"
+                >
+                  {/* Top accent line */}
+                  <div className={cn(
+                    'h-1',
+                    account.is_active ? 'bg-gradient-to-r from-indigo-500 to-violet-500' : 'bg-slate-200'
+                  )} />
+
+                  <div className="p-5">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', colors)}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <Badge color={account.is_active ? 'success' : 'neutral'} size="xs">
+                        {account.is_active ? 'Active' : 'Closed'}
+                      </Badge>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{account.name}</p>
-                      <p className="text-xs text-slate-400">{capitalize(account.account_type)}</p>
+
+                    {/* Name & type */}
+                    <div className="mt-4">
+                      <p className="font-semibold text-slate-900 group-hover:text-indigo-700">
+                        {account.name}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-400">
+                        {capitalize(account.account_type)} · {account.currency}
+                      </p>
                     </div>
+
+                    {/* Balance */}
+                    <div className="mt-4 flex items-end justify-between">
+                      <div>
+                        <p className="text-xs text-slate-400">Balance</p>
+                        <p className="mt-0.5 text-xl font-bold tabular-nums text-slate-900">
+                          {formatCurrency(account.balance, account.currency)}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                    </div>
+
+                    {/* Account number */}
+                    <p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-400">
+                      {account.account_number}
+                    </p>
                   </div>
-                  <Badge color={account.is_active ? 'success' : 'neutral'} size="xs">
-                    {account.is_active ? 'Active' : 'Closed'}
-                  </Badge>
-                </div>
-                <p className="mt-4 text-2xl font-semibold tabular-nums text-slate-900">
-                  {formatCurrency(account.balance, account.currency)}
-                </p>
-                <p className="mt-1 text-xs text-slate-400">{account.account_number}</p>
-              </Card>
-            </Link>
-          ))}
+                </Card>
+              </Link>
+            )
+          })}
         </div>
       )}
 

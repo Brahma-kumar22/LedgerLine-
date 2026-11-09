@@ -39,8 +39,8 @@ export function CardHeader({ children, title, subtitle, action, className }) {
   )
 }
 
-export function CardBody({ children }) {
-  return <div className={className}>{children}</div>
+export function CardBody({ children, className: _c }) {
+  return <div className={_c}>{children}</div>
 }
 
 export default Card

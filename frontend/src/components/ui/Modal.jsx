@@ -75,7 +75,7 @@ export default function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-300 flex items-start justify-center overflow-y-auto p-4 pt-16"
+      className="fixed inset-0 z-overlay flex items-start justify-center overflow-y-auto p-4 pt-16"
       onClick={(e) => closeOnBackdrop && e.target === e.currentTarget && onClose?.()}
     >
       {/* Backdrop */}
@@ -89,7 +89,7 @@ export default function Modal({
         aria-label={title || 'Dialog'}
         tabIndex={-1}
         className={cn(
-          'relative z-400 w-full rounded-xl bg-white shadow-xl animate-fade-in-up',
+          'relative z-modal w-full rounded-xl bg-white shadow-xl animate-fade-in-up',
           SIZES[size]
         )}
       >

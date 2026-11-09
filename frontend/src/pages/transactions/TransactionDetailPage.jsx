@@ -28,6 +28,7 @@ import {
   Spinner,
   ErrorState,
   TransactionStatusBadge,
+  PageHeader,
 } from '../../components/ui'
 import { formatCurrency, formatDate, capitalize } from '../../lib/utils'
 
@@ -121,6 +122,12 @@ export default function TransactionDetailPage() {
       <Link to="/transactions" className="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
         <ChevronLeft className="h-4 w-4" /> Back to transactions
       </Link>
+
+      <PageHeader
+        title={txn.reference}
+        subtitle={`${capitalize(txn.transaction_type)} · ${txn.currency}`}
+        className="mb-6"
+      />
 
       {/* Transaction header */}
       <Card padded>

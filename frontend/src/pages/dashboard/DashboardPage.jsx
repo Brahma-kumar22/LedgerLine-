@@ -1,49 +1,84 @@
 /**
  * pages/dashboard/DashboardPage.jsx
  *
- * Landing page after login.
- *
- * For ACCOUNT_HOLDER:
- *   - Summary cards: total balance across accounts, number of accounts
- *   - Recent transactions list (last 5)
- *   - Quick action buttons (deposit, withdraw, transfer)
- *   - Empty state if no accounts exist yet
- *
- * For ADMIN / AUDITOR:
- *   - Shows a different set of summary cards (system overview)
- *   - Recent transactions across all users
- *
- * All data is fetched from the real API. No fabricated numbers.
+ * Premium financial dashboard.
+ * Loads real data from /api/accounts/ and /api/transactions/.
+ * Never invents metrics or fabricates historical data.
  */
 
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Wallet,
-  ArrowLeftRight,
   ArrowDownLeft,
   ArrowUpRight,
+  ArrowLeftRight,
   TrendingUp,
-  Inbox,
   Plus,
+  LayoutDashboard,
+  ChevronRight,
 } from 'lucide-react'
 
 import { useAuth } from '../../context/AuthContext'
 import { apiClient, ApiError } from '../../lib/api'
 import {
-  PageHeader,
   Card,
+  PageHeader,
+  Badge,
+  Button,
   Spinner,
   ErrorState,
   EmptyState,
   TransactionStatusBadge,
-  Button,
-  Badge,
 } from '../../components/ui'
-import { formatCurrency, formatDate, capitalize } from '../../lib/utils'
+import { formatCurrency, formatDate, capitalize, cn } from '../../lib/utils'
+
+// ── Stat card ─────────────────────────────────────────────────────────────────
+
+function StatCard({ label, value, icon: Icon, iconBg, sub }) {
+  return (
+    <Card padded>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-slate-500">{label}</p>
+          <p className="mt-2 text-2xl font-bold tabular-nums text-slate-900 leading-none">
+            {value}
+          </p>
+          {sub && (
+            <p className="mt-1.5 text-xs text-slate-400">{sub}</p>
+          )}
+        </div>
+        <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', iconBg)}>
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+// ── Quick action button ───────────────────────────────────────────────────────
+
+function QuickAction({ to, icon: Icon, label, description, color }) {
+  return (
+    <Link to={to} className="group">
+      <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 transition-all duration-150 hover:border-indigo-200 hover:bg-indigo-50/40 hover:shadow-sm">
+        <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', color)}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-800 group-hover:text-indigo-700">{label}</p>
+          <p className="text-xs text-slate-500">{description}</p>
+        </div>
+        <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-300 group-hover:text-indigo-400" />
+      </div>
+    </Link>
+  )
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { user, isAccountHolder } = useAuth()
+  const { user, isAccountHolder, isAdmin, isAuditor } = useAuth()
   const [accounts, setAccounts] = useState(null)
   const [transactions, setTransactions] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -57,10 +92,8 @@ export default function DashboardPage() {
         apiClient.accounts.list({ page: 1 }),
         apiClient.transactions.list({ page: 1 }),
       ])
-
-      // Handle paginated or non-paginated responses
-      setAccounts(accountsRes.results || accountsRes)
-      setTransactions(txnsRes.results || txnsRes)
+      setAccounts(accountsRes.results ?? accountsRes)
+      setTransactions(txnsRes.results ?? txnsRes)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load dashboard data')
     } finally {
@@ -68,238 +101,277 @@ export default function DashboardPage() {
     }
   }, [])
 
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
+  useEffect(() => { fetchData() }, [fetchData])
 
-  // ── Loading state ────────────────────────────────────────────────────────
+  // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div>
-        <PageHeader title="Dashboard" subtitle={`Welcome back, ${user?.first_name || user?.username}`} />
-        <div className="mt-6 flex min-h-[300px] items-center justify-center">
+        <PageHeader
+          title="Dashboard"
+          subtitle={`Welcome back, ${user?.first_name || user?.username || ''}`}
+        />
+        <div className="mt-10 flex items-center justify-center">
           <Spinner size="xl" />
         </div>
       </div>
     )
   }
 
-  // ── Error state ───────────────────────────────────────────────────────────
+  // ── Error ──────────────────────────────────────────────────────────────────
   if (error) {
     return (
       <div>
         <PageHeader title="Dashboard" />
-        <ErrorState message={error} onRetry={fetchData} className="mt-6" />
+        <ErrorState message={error} onRetry={fetchData} className="mt-8" />
       </div>
     )
   }
 
-  // ── Compute summary ───────────────────────────────────────────────────────
-  // Filter out system accounts for customer-facing totals
-  const customerAccounts = (accounts || []).filter(
-    (a) => !a.is_system_account
-  )
-  const totalBalance = customerAccounts.reduce(
-    (sum, a) => sum + parseFloat(a.balance || 0),
-    0
-  )
-  const activeAccounts = customerAccounts.filter((a) => a.is_active)
-  const recentTxns = (transactions || []).slice(0, 5)
+  // ── Compute metrics ────────────────────────────────────────────────────────
+  const customerAccounts = (accounts || []).filter((a) => !a.is_system_account)
+  const activeAccounts   = customerAccounts.filter((a) => a.is_active)
+  const totalBalance     = customerAccounts.reduce((sum, a) => sum + parseFloat(a.balance || 0), 0)
+  const recentTxns       = (transactions || []).slice(0, 6)
+  const txnTotal         = transactions?.length ?? 0
+
+  // Completed deposits and withdrawals (real income/expense from real data)
+  const completedTxns    = (transactions || []).filter((t) => t.status === 'COMPLETED')
+  const totalDeposited   = completedTxns
+    .filter((t) => t.transaction_type === 'DEPOSIT')
+    .reduce((s, t) => s + parseFloat(t.amount || 0), 0)
+  const totalWithdrawn   = completedTxns
+    .filter((t) => t.transaction_type === 'WITHDRAWAL')
+    .reduce((s, t) => s + parseFloat(t.amount || 0), 0)
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Dashboard"
-        subtitle={`Welcome back, ${user?.first_name || user?.username}`}
-        actions={
-          isAccountHolder && (
-            <div className="flex gap-2">
-              <Link to="/transactions/deposit">
-                <Button variant="secondary" size="sm" icon={ArrowDownLeft}>
-                  Deposit
-                </Button>
-              </Link>
-              <Link to="/transactions/withdraw">
-                <Button variant="secondary" size="sm" icon={ArrowUpRight}>
-                  Withdraw
-                </Button>
-              </Link>
-              <Link to="/transactions/transfer">
-                <Button variant="secondary" size="sm" icon={ArrowLeftRight}>
-                  Transfer
-                </Button>
-              </Link>
-            </div>
-          )
-        }
+        subtitle={`Welcome back, ${user?.first_name || user?.username || ''}. Here's your financial overview.`}
       />
 
-      {/* Summary cards */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card padded>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Total Balance</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
-                {formatCurrency(totalBalance)}
-              </p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
-              <TrendingUp className="h-5 w-5 text-emerald-500" />
-            </div>
-          </div>
-        </Card>
-
-        <Card padded>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Active Accounts</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
-                {activeAccounts.length}
-              </p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50">
-              <Wallet className="h-5 w-5 text-indigo-500" />
-            </div>
-          </div>
-        </Card>
-
-        <Card padded>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Recent Transactions</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
-                {transactions?.length || 0}
-              </p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
-              <ArrowLeftRight className="h-5 w-5 text-amber-500" />
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Recent transactions */}
-      <Card padded className="mt-6">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">
-          Recent Transactions
-        </h3>
-
-        {recentTxns.length === 0 ? (
-          <EmptyState
-            icon={Inbox}
-            title="No transactions yet"
-            message="When you make deposits, withdrawals, or transfers, they will appear here."
-            action={
-              isAccountHolder && (
-                <Link to="/transactions">
-                  <Button variant="secondary" size="sm">
-                    Make a transaction
-                  </Button>
-                </Link>
-              )
-            }
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Total Balance"
+          value={formatCurrency(totalBalance)}
+          icon={TrendingUp}
+          iconBg="bg-emerald-50 text-emerald-600"
+          sub={`Across ${activeAccounts.length} active account${activeAccounts.length !== 1 ? 's' : ''}`}
+        />
+        <StatCard
+          label="Accounts"
+          value={customerAccounts.length}
+          icon={Wallet}
+          iconBg="bg-indigo-50 text-indigo-600"
+          sub={activeAccounts.length === customerAccounts.length ? 'All active' : `${activeAccounts.length} of ${customerAccounts.length} active`}
+        />
+        {totalDeposited > 0 ? (
+          <StatCard
+            label="Total Deposited"
+            value={formatCurrency(totalDeposited)}
+            icon={ArrowDownLeft}
+            iconBg="bg-sky-50 text-sky-600"
+            sub="Completed deposits"
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                  <th className="pb-3 pr-4">Reference</th>
-                  <th className="pb-3 pr-4">Type</th>
-                  <th className="pb-3 pr-4">Amount</th>
-                  <th className="pb-3 pr-4">Status</th>
-                  <th className="pb-3 pr-4">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+          <StatCard
+            label="Transactions"
+            value={txnTotal}
+            icon={ArrowLeftRight}
+            iconBg="bg-amber-50 text-amber-600"
+            sub="All time"
+          />
+        )}
+        {totalWithdrawn > 0 ? (
+          <StatCard
+            label="Total Withdrawn"
+            value={formatCurrency(totalWithdrawn)}
+            icon={ArrowUpRight}
+            iconBg="bg-red-50 text-red-600"
+            sub="Completed withdrawals"
+          />
+        ) : (
+          <StatCard
+            label="Role"
+            value={isAdmin ? 'Admin' : isAuditor ? 'Auditor' : 'Account Holder'}
+            icon={LayoutDashboard}
+            iconBg="bg-slate-100 text-slate-600"
+            sub="Your access level"
+          />
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Recent transactions */}
+        <div className="lg:col-span-2">
+          <Card padded={false}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h2 className="text-base font-semibold text-slate-900">Recent Transactions</h2>
+              <Link to="/transactions" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+                View all
+              </Link>
+            </div>
+
+            {recentTxns.length === 0 ? (
+              <EmptyState
+                icon={ArrowLeftRight}
+                title="No transactions yet"
+                message="Deposits, withdrawals, and transfers will appear here."
+                action={
+                  isAccountHolder && (
+                    <Link to="/transactions/deposit">
+                      <Button size="sm" icon={ArrowDownLeft} variant="secondary">
+                        Make your first deposit
+                      </Button>
+                    </Link>
+                  )
+                }
+                className="py-12"
+              />
+            ) : (
+              <ul className="divide-y divide-slate-100">
                 {recentTxns.map((txn) => {
-                  const isCredit =
-                    txn.transaction_type === 'DEPOSIT' ||
-                    (txn.transaction_type === 'TRANSFER' &&
-                      !txn.source_account)
+                  const isCredit = txn.transaction_type === 'DEPOSIT'
                   return (
-                    <tr key={txn.id} className="hover:bg-slate-50">
-                      <td className="py-3 pr-4 text-sm font-medium text-slate-700">
-                        {txn.reference}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <span className="flex items-center gap-1.5 text-sm text-slate-600">
-                          {isCredit ? (
-                            <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-500" />
-                          ) : (
-                            <ArrowUpRight className="h-3.5 w-3.5 text-red-500" />
-                          )}
-                          {capitalize(txn.transaction_type)}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-4 text-sm tabular-nums font-medium text-slate-700">
-                        {isCredit ? '+' : '−'}
-                        {formatCurrency(txn.amount, txn.currency)}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <TransactionStatusBadge status={txn.status} />
-                      </td>
-                      <td className="py-3 pr-4 text-sm text-slate-500">
-                        {formatDate(txn.created_at, false)}
-                      </td>
-                    </tr>
+                    <li key={txn.id}>
+                      <Link
+                        to={`/transactions/${txn.id}`}
+                        className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-slate-50"
+                      >
+                        {/* Type icon */}
+                        <div className={cn(
+                          'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
+                          isCredit ? 'bg-emerald-50' : 'bg-red-50'
+                        )}>
+                          {isCredit
+                            ? <ArrowDownLeft className="h-4 w-4 text-emerald-600" />
+                            : <ArrowUpRight  className="h-4 w-4 text-red-500" />
+                          }
+                        </div>
+
+                        {/* Reference + type */}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-slate-800">
+                            {txn.reference}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {capitalize(txn.transaction_type)} · {formatDate(txn.created_at, false)}
+                          </p>
+                        </div>
+
+                        {/* Amount + status */}
+                        <div className="text-right">
+                          <p className={cn(
+                            'text-sm font-semibold tabular-nums',
+                            isCredit ? 'text-emerald-600' : 'text-slate-700'
+                          )}>
+                            {isCredit ? '+' : '−'}{formatCurrency(txn.amount, txn.currency)}
+                          </p>
+                          <div className="mt-0.5 flex justify-end">
+                            <TransactionStatusBadge status={txn.status} size="xs" />
+                          </div>
+                        </div>
+                      </Link>
+                    </li>
                   )
                 })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+              </ul>
+            )}
+          </Card>
+        </div>
 
-      {/* Accounts overview (for account holders) */}
-      {isAccountHolder && customerAccounts.length > 0 && (
-        <Card padded className="mt-6">
-          <h3 className="mb-4 text-lg font-semibold text-slate-900">Your Accounts</h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {customerAccounts.slice(0, 3).map((account) => (
-              <Link
-                key={account.id}
-                to={`/accounts/${account.id}`}
-                className="block rounded-lg border border-slate-200 p-4 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-700">
-                    {account.name}
-                  </span>
-                  <Badge color={account.is_active ? 'success' : 'neutral'} size="xs">
-                    {account.is_active ? 'Active' : 'Closed'}
-                  </Badge>
-                </div>
-                <p className="mt-2 text-lg font-semibold tabular-nums text-slate-900">
-                  {formatCurrency(account.balance, account.currency)}
-                </p>
-                <p className="mt-1 text-xs text-slate-400">
-                  {account.account_number}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </Card>
-      )}
+        {/* Right column */}
+        <div className="space-y-6">
+          {/* Quick actions — only for account holders */}
+          {isAccountHolder && (
+            <Card padded={false}>
+              <div className="border-b border-slate-100 px-5 py-4">
+                <h2 className="text-base font-semibold text-slate-900">Quick Actions</h2>
+              </div>
+              <div className="space-y-2 p-4">
+                <QuickAction
+                  to="/transactions/deposit"
+                  icon={ArrowDownLeft}
+                  label="Deposit"
+                  description="Add funds to an account"
+                  color="bg-emerald-50 text-emerald-600"
+                />
+                <QuickAction
+                  to="/transactions/withdraw"
+                  icon={ArrowUpRight}
+                  label="Withdraw"
+                  description="Move funds out"
+                  color="bg-red-50 text-red-500"
+                />
+                <QuickAction
+                  to="/transactions/transfer"
+                  icon={ArrowLeftRight}
+                  label="Transfer"
+                  description="Between your accounts"
+                  color="bg-indigo-50 text-indigo-600"
+                />
+              </div>
+            </Card>
+          )}
 
-      {/* Empty state: no accounts */}
-      {isAccountHolder && customerAccounts.length === 0 && (
-        <Card padded className="mt-6">
-          <EmptyState
-            icon={Wallet}
-            title="No accounts yet"
-            message="Create your first account to start making deposits, withdrawals, and transfers."
-            action={
-              <Link to="/accounts">
-                <Button variant="secondary" size="sm" icon={Plus}>
-                  Create Account
-                </Button>
+          {/* Accounts overview */}
+          <Card padded={false}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h2 className="text-base font-semibold text-slate-900">Accounts</h2>
+              <Link to="/accounts" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+                View all
               </Link>
-            }
-          />
-        </Card>
-      )}
+            </div>
+
+            {customerAccounts.length === 0 ? (
+              <EmptyState
+                icon={Wallet}
+                title="No accounts"
+                message="Create your first account to get started."
+                action={
+                  isAccountHolder && (
+                    <Link to="/accounts">
+                      <Button size="sm" icon={Plus} variant="secondary">
+                        Create account
+                      </Button>
+                    </Link>
+                  )
+                }
+                className="py-8"
+              />
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {customerAccounts.slice(0, 4).map((acc) => (
+                  <li key={acc.id}>
+                    <Link
+                      to={`/accounts/${acc.id}`}
+                      className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-slate-50"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-slate-800">{acc.name}</p>
+                        <p className="text-xs text-slate-400">{acc.account_number}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold tabular-nums text-slate-900">
+                          {formatCurrency(acc.balance, acc.currency)}
+                        </p>
+                        <Badge
+                          color={acc.is_active ? 'success' : 'neutral'}
+                          size="xs"
+                        >
+                          {acc.is_active ? 'Active' : 'Closed'}
+                        </Badge>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }

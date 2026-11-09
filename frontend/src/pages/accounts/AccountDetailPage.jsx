@@ -26,6 +26,7 @@ import {
   ErrorState,
   EmptyState,
   Button,
+  PageHeader,
 } from '../../components/ui'
 import { formatCurrency, formatDate, capitalize } from '../../lib/utils'
 
@@ -86,6 +87,12 @@ export default function AccountDetailPage() {
         <ChevronLeft className="h-4 w-4" />
         Back to accounts
       </Link>
+
+      <PageHeader
+        title={account?.name || 'Account Detail'}
+        subtitle={account?.account_number}
+        className="mb-6"
+      />
 
       {/* Account header */}
       <Card padded>
