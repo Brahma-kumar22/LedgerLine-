@@ -1,20 +1,18 @@
 /**
  * components/layout/Sidebar.jsx
  *
- * Premium midnight-navy sidebar with:
- *   - Official MONVEX gradient-M logo
- *   - Inline collapse button inside the branding header (not floating on the edge)
- *   - Smooth width transition
- *   - Icon-only collapsed mode with tooltip labels
- *   - Role-aware navigation
- *   - User footer with avatar
- *   - Mobile off-canvas drawer
+ * Premium midnight-navy sidebar.
  *
- * COLLAPSE BUTTON DESIGN:
- *   Per the reference screenshot, the collapse toggle lives inside the
- *   branding header row — right-aligned, vertically centered with the logo.
- *   It is NOT a floating circle straddling the sidebar edge.
- *   In collapsed mode it moves to center (below the logo mark).
+ * Expanded (w-64):  Logo + wordmark + tagline + labels + user footer.
+ * Collapsed (w-20): Logo only + icon-only nav + avatar + tooltips.
+ *
+ * Key layout decisions:
+ *  - Collapsed width is 80px (w-20) so logo has room: 80 - 2×16px padding = 48px logo.
+ *  - Nav section uses overflow-hidden (not overflow-y-auto) unless content
+ *    genuinely overflows — prevents spurious scrollbar on collapsed sidebar.
+ *  - BrandHeader is always a single horizontal row; no vertical stacking.
+ *  - Collapse toggle sits in the header row, right-aligned.
+ *  - Icons are 20×20px — large enough to read at 80px width.
  */
 
 import { useEffect } from 'react'
@@ -26,33 +24,50 @@ import { cn, displayName, formatRole } from '../../lib/utils'
 import { getNavItemsForRole } from './navConfig'
 import MonvexLogo from '../ui/MonvexLogo'
 
-// ── Brand header with collapse toggle ────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Brand header
+// ─────────────────────────────────────────────────────────────────────────────
 
 function BrandHeader({ collapsed, onToggle }) {
   return (
-    <div className="flex items-center border-b border-white/8 px-4 py-3.5">
-      {/* Logo + wordmark — shrinks to just logo when collapsed */}
-      <div className="flex flex-1 items-center gap-3 min-w-0">
-        <MonvexLogo size={30} className="shrink-0" />
-        {!collapsed && (
-          <div className="flex min-w-0 flex-col">
-            <span className="text-sm font-bold tracking-wider text-white">MONVEX</span>
-            <span className="text-2xs leading-tight text-slate-400">Move Money. Maintain Trust.</span>
-          </div>
-        )}
-      </div>
+    <div className={cn(
+      'flex items-center border-b border-white/10',
+      collapsed ? 'h-16 justify-center px-0' : 'h-16 gap-3 px-4'
+    )}>
+      {/* Logo — 44px when collapsed (fits inside 80px with no padding), 36px when expanded */}
+      <MonvexLogo
+        size={collapsed ? 44 : 36}
+        className="shrink-0"
+      />
 
-      {/* Collapse / expand toggle — always right-aligned in the header */}
+      {/* Wordmark + tagline — hidden when collapsed */}
+      {!collapsed && (
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="text-sm font-bold tracking-widest text-white uppercase">
+            MONVEX
+          </span>
+          <span className="text-[10px] leading-tight text-slate-400">
+            Move Money. Maintain Trust.
+          </span>
+        </div>
+      )}
+
+      {/* Collapse toggle — always visible, right-aligned */}
       {onToggle && (
         <button
           type="button"
           onClick={onToggle}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded text-slate-500 hover:bg-navy-700 hover:text-slate-200 transition-colors duration-150"
+          className={cn(
+            'flex h-6 w-6 shrink-0 items-center justify-center rounded',
+            'text-slate-500 transition-colors duration-150',
+            'hover:bg-white/10 hover:text-slate-200',
+            collapsed && 'absolute right-2'
+          )}
         >
           {collapsed
-            ? <ChevronRight className="h-3.5 w-3.5" />
-            : <ChevronLeft  className="h-3.5 w-3.5" />
+            ? <ChevronRight className="h-4 w-4" />
+            : <ChevronLeft  className="h-4 w-4" />
           }
         </button>
       )}
@@ -60,7 +75,9 @@ function BrandHeader({ collapsed, onToggle }) {
   )
 }
 
-// ── Single nav item ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Navigation item
+// ─────────────────────────────────────────────────────────────────────────────
 
 function NavItem({ item, collapsed, onNavigate }) {
   const location = useLocation()
@@ -76,65 +93,72 @@ function NavItem({ item, collapsed, onNavigate }) {
         onClick={onNavigate}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          'flex items-center rounded-lg text-sm font-medium transition-all duration-150',
+          'flex items-center rounded-lg text-sm font-medium',
+          'transition-colors duration-150',
           collapsed
-            ? 'justify-center mx-2 py-2.5 px-0'
-            : 'gap-3 mx-2 px-3 py-2',
+            ? 'mx-auto w-10 h-10 justify-center'
+            : 'mx-2 gap-3 px-3 py-2.5',
           isActive
-            ? 'bg-indigo-600/30 text-white'
-            : 'text-slate-400 hover:bg-navy-800 hover:text-slate-200'
+            ? 'bg-white/10 text-white'
+            : 'text-slate-400 hover:bg-white/8 hover:text-slate-200'
         )}
       >
         <Icon
           className={cn(
-            'shrink-0 transition-colors duration-150',
-            isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300',
-            'h-[18px] w-[18px]'
+            'shrink-0',
+            'h-5 w-5',
+            isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'
           )}
           aria-hidden="true"
         />
-        {!collapsed && <span>{item.label}</span>}
-
-        {/* Active indicator bar */}
+        {!collapsed && <span className="truncate">{item.label}</span>}
         {isActive && !collapsed && (
-          <span className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-400" />
+          <span className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-400 shrink-0" />
         )}
       </NavLink>
 
-      {/* Tooltip — only in collapsed mode */}
+      {/* Tooltip — only when collapsed */}
       {collapsed && (
-        <span
+        <div
           role="tooltip"
           className={cn(
-            'pointer-events-none absolute left-full top-1/2 z-tooltip',
-            'ml-3 -translate-y-1/2 whitespace-nowrap',
-            'rounded-md bg-slate-800 px-2.5 py-1.5',
-            'text-xs font-medium text-white shadow-md',
+            'pointer-events-none absolute left-full top-1/2 z-tooltip -translate-y-1/2',
+            'ml-3 whitespace-nowrap rounded-md bg-slate-800',
+            'px-2.5 py-1.5 text-xs font-medium text-white shadow-md',
             'opacity-0 group-hover:opacity-100 transition-opacity duration-150'
           )}
         >
           {item.label}
-        </span>
+        </div>
       )}
     </li>
   )
 }
 
-// ── Sidebar inner content ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Inner sidebar content (shared between desktop and mobile)
+// ─────────────────────────────────────────────────────────────────────────────
 
 function SidebarContent({ collapsed = false, onNavigate, onToggle }) {
   const { user } = useAuth()
   const navItems = getNavItemsForRole(user?.role || 'ACCOUNT_HOLDER')
-  const name    = displayName(user)
-  const role    = formatRole(user?.role)
-  const initial = (user?.first_name?.[0] || user?.username?.[0] || '?').toUpperCase()
+  const name     = displayName(user)
+  const role     = formatRole(user?.role)
+  const initial  = (user?.first_name?.[0] || user?.username?.[0] || '?').toUpperCase()
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col overflow-hidden">
       <BrandHeader collapsed={collapsed} onToggle={onToggle} />
 
-      <nav aria-label="Main navigation" className="flex-1 overflow-y-auto py-3">
-        <ul className="space-y-0.5">
+      {/* Navigation — overflow-hidden; use overflow-y-auto only if genuinely needed */}
+      <nav
+        aria-label="Main navigation"
+        className={cn(
+          'flex-1 py-2',
+          collapsed ? 'overflow-hidden' : 'overflow-y-auto'
+        )}
+      >
+        <ul className={cn('space-y-0.5', collapsed ? 'flex flex-col items-center' : '')}>
           {navItems.map((item) => (
             <NavItem
               key={item.path}
@@ -147,21 +171,19 @@ function SidebarContent({ collapsed = false, onNavigate, onToggle }) {
       </nav>
 
       {/* User footer */}
-      <div
-        className={cn(
-          'border-t border-white/8 py-3',
-          collapsed ? 'flex justify-center px-0' : 'px-4'
-        )}
-      >
+      <div className={cn(
+        'border-t border-white/10 py-3',
+        collapsed ? 'flex justify-center' : 'px-4'
+      )}>
         {collapsed ? (
-          <div className="relative group flex h-8 w-8 cursor-default items-center justify-center rounded-full bg-indigo-600/80 text-xs font-bold text-white">
+          <div className="group relative flex h-9 w-9 cursor-default items-center justify-center rounded-full bg-indigo-600/80 text-xs font-bold text-white">
             {initial}
-            <span
+            <div
               role="tooltip"
               className="pointer-events-none absolute left-full top-1/2 z-tooltip ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1.5 text-xs text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-150"
             >
               {name || user?.username}
-            </span>
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-3">
@@ -169,10 +191,8 @@ function SidebarContent({ collapsed = false, onNavigate, onToggle }) {
               {initial}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white">
-                {name || user?.username}
-              </p>
-              <p className="truncate text-2xs text-slate-400">{role}</p>
+              <p className="truncate text-sm font-semibold text-white">{name || user?.username}</p>
+              <p className="truncate text-[11px] text-slate-400">{role}</p>
             </div>
           </div>
         )}
@@ -181,15 +201,17 @@ function SidebarContent({ collapsed = false, onNavigate, onToggle }) {
   )
 }
 
-// ── Desktop sidebar ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Desktop sidebar
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function DesktopSidebar({ collapsed, onToggle }) {
   return (
     <aside
       className={cn(
-        'hidden h-screen shrink-0 bg-navy-900 md:block',
+        'relative hidden h-screen shrink-0 overflow-hidden bg-navy-900 md:flex md:flex-col',
         'transition-[width] duration-200 ease-in-out',
-        collapsed ? 'w-16' : 'w-60'
+        collapsed ? 'w-20' : 'w-64'
       )}
     >
       <SidebarContent collapsed={collapsed} onToggle={onToggle} />
@@ -197,7 +219,9 @@ export function DesktopSidebar({ collapsed, onToggle }) {
   )
 }
 
-// ── Mobile sidebar ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile sidebar (off-canvas drawer, always full-width)
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function MobileSidebar({ isOpen, onClose }) {
   useEffect(() => {
@@ -212,9 +236,10 @@ export function MobileSidebar({ isOpen, onClose }) {
       <div
         className="absolute inset-0 bg-slate-900/60 animate-fade-in backdrop-blur-sm"
         onClick={onClose}
+        aria-hidden="true"
       />
       <aside
-        className="absolute left-0 top-0 h-full w-64 bg-navy-900 animate-slide-left shadow-2xl"
+        className="absolute left-0 top-0 h-full w-64 overflow-hidden bg-navy-900 animate-slide-left shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
@@ -222,7 +247,7 @@ export function MobileSidebar({ isOpen, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 z-10 rounded-md p-1.5 text-slate-400 hover:bg-navy-800 hover:text-white"
+          className="absolute right-3 top-[14px] z-10 rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
           aria-label="Close navigation"
         >
           <X className="h-5 w-5" />

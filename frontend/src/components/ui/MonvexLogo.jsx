@@ -1,30 +1,76 @@
 /**
  * components/ui/MonvexLogo.jsx
  *
- * Official MONVEX brand icon.
+ * Official MONVEX brand icon component.
  *
- * IMPLEMENTATION:
- *   Uses the actual PNG asset supplied with the brand kit.
- *   The PNG must be placed at:
+ * ASSET REQUIREMENT:
+ *   Place the official MONVEX M logo PNG at:
  *     frontend/public/monvex-logo.png
  *
- *   It is served as a static asset by Vite from /public/ — no import needed.
- *   The URL is /monvex-logo.png in both development and production builds.
+ *   Vite serves everything in public/ at the root URL.
+ *   The browser loads it as /monvex-logo.png with no import needed.
  *
- *   Requirements met:
- *   ✓ Uses the exact supplied PNG — no SVG recreation
- *   ✓ Preserves original gradients, transparency and glow
- *   ✓ Never stretches or distorts (object-contain)
- *   ✓ Works on dark (sidebar) and light (auth pages) backgrounds
- *   ✓ Accessible: role="img" + aria-label
- *   ✓ Square 1:1 aspect ratio enforced via width/height props
+ * FALLBACK:
+ *   If the PNG has not been placed yet, onError falls back to an inline
+ *   SVG that approximates the brand purple gradient identity so the layout
+ *   never shows a broken-image icon.
  *
  * Props:
- *   size      — pixel size for both width and height (default 40)
- *   className — additional Tailwind/CSS classes
+ *   size      — number (applied as both width and height in px). Default 32.
+ *   className — extra CSS classes on the wrapper element.
  */
 
-export default function MonvexLogo({ size = 40, className = '' }) {
+import { useState } from 'react'
+
+function FallbackM({ size }) {
+  /* Inline SVG fallback — purple gradient M. Only shown if PNG is missing. */
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 64 64"
+      width={size}
+      height={size}
+      aria-label="MONVEX logo"
+      role="img"
+      style={{ display: 'block', flexShrink: 0 }}
+    >
+      <defs>
+        <linearGradient id="fb-g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#c4b5fd" />
+          <stop offset="50%" stopColor="#7c3aed" />
+          <stop offset="100%" stopColor="#6d28d9" />
+        </linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="14" fill="url(#fb-g)" />
+      <text
+        x="32" y="46"
+        textAnchor="middle"
+        fontFamily="Inter, system-ui, sans-serif"
+        fontWeight="800"
+        fontSize="34"
+        fill="white"
+        letterSpacing="-1"
+      >
+        M
+      </text>
+    </svg>
+  )
+}
+
+export default function MonvexLogo({ size = 32, className = '' }) {
+  const [failed, setFailed] = useState(false)
+
+  if (failed) {
+    return (
+      <span
+        className={className}
+        style={{ display: 'block', width: size, height: size, flexShrink: 0 }}
+      >
+        <FallbackM size={size} />
+      </span>
+    )
+  }
+
   return (
     <img
       src="/monvex-logo.png"
@@ -32,7 +78,14 @@ export default function MonvexLogo({ size = 40, className = '' }) {
       role="img"
       width={size}
       height={size}
-      style={{ width: size, height: size, objectFit: 'contain', display: 'block' }}
+      onError={() => setFailed(true)}
+      style={{
+        width: size,
+        height: size,
+        objectFit: 'contain',
+        display: 'block',
+        flexShrink: 0,
+      }}
       className={className}
       draggable={false}
     />
