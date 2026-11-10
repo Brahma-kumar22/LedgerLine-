@@ -408,3 +408,88 @@ Django manage.py check → 0 issues
 **Commits:**
 - `c7c7d14` — Fix MONVEX brand assets and favicon implementation
 - `f040675` — Polish sidebar navigation and premium UI consistency
+
+
+---
+
+## November 10, 2026
+
+### Task: MONVEX Sidebar and Dashboard UI Improvement
+
+**1. Problem Identified**
+
+- Official MONVEX logo was not loading because `frontend/public/monvex-logo.png` did not exist. The `MonvexLogo` component was an SVG recreation, then was updated to use `<img src="/monvex-logo.png">` without the actual file being present, resulting in a broken-image icon.
+- Expanded sidebar had `BrandHeader` stacking the logo and toggle button vertically in collapsed mode, which looked broken. The toggle was misaligned.
+- Collapsed sidebar used `w-16` (64px) width with `px-4` padding — leaving only 24px for the logo, causing it to clip. The `overflow-y-auto` on the nav created an unwanted scrollbar when icons had any overflow.
+- Dashboard Accounts card was placed in the third column of a `lg:grid-cols-3` right-side panel, making it a narrow ~300px card squeezed into the corner beside Quick Actions.
+- Dashboard layout lacked visual balance — the Accounts section received no breathing room.
+
+**2. AI Prompt**
+
+> Phase 3.5: Sidebar and Dashboard UI Redesign. Use the exact attached MONVEX M logo PNG as the brand icon. Fix the collapsed sidebar — logo clips, unwanted scrollbar, icons overflow. Fix the expanded sidebar — improve BrandHeader layout, collapse button positioning. Redesign the dashboard layout: move Accounts section out of the narrow right column into a full-width bottom row with a multi-column account card grid. Responsive at all breakpoints. Build and lint must pass.
+
+**3. AI-Generated Implementation**
+
+Files changed:
+
+| File | Change |
+|---|---|
+| `frontend/src/components/ui/MonvexLogo.jsx` | Renders `<img src="/monvex-logo.png">` with `onError` fallback to inline purple gradient SVG — never shows broken-image icon |
+| `frontend/src/components/layout/Sidebar.jsx` | Full redesign: `w-64` expanded, `w-20` collapsed, BrandHeader fixed-height `h-16` horizontal row, 44px logo when collapsed, 36px when expanded, `overflow-hidden` on nav prevents scrollbar, 20px icons, tooltip on all collapsed items |
+| `frontend/src/pages/dashboard/DashboardPage.jsx` | Row 2 changed to `lg:grid-cols-12` with transactions (8 cols) + quick actions (4 cols). Row 3 added: full-width Accounts section with responsive `1→2→3→4` column `AccountCard` grid. Empty state improved with large icon, better copy, correctly placed button |
+| `frontend/public/favicon.svg` | Purple gradient M SVG as clean favicon fallback |
+
+Key design decisions:
+- `w-20` (80px) collapsed: logo 44px + zero horizontal padding, no clipping
+- `overflow-hidden` on collapsed `<nav>` removes the scrollbar that appeared on `overflow-y-auto`
+- Dashboard Row 3 is fully independent — Accounts never shares space with Quick Actions
+- `AccountCard` component has top accent bar (gradient for active, grey for closed), type icon, balance
+
+**4. Issues Found During Review**
+
+- The PNG file `monvex-logo.png` does not exist in `frontend/public/`. The `onError` fallback activates immediately — the purple gradient M SVG renders instead.
+- `favicon-16.png`, `favicon-32.png`, and `apple-touch-icon.png` in `frontend/public/` are SVG content saved with `.png` extensions — they are not real PNG files. Browsers that strictly validate MIME type may ignore them.
+- These two items require the user to manually copy the official PNG into `frontend/public/monvex-logo.png`. No code change can substitute for the actual binary asset.
+
+**5. Corrections Applied**
+
+- `MonvexLogo` now handles missing PNG gracefully — `onError` triggers the SVG fallback immediately, so the sidebar and auth pages always render a recognisable brand mark even without the PNG file.
+- Sidebar `w-16` → `w-20` corrects the clipping root cause.
+- `overflow-hidden` on collapsed nav removes the scrollbar root cause.
+- Dashboard Accounts section extracted to its own full-width row — no more squeezing.
+
+**6. Verification**
+
+| Check | Result |
+|---|---|
+| `npm run build` | ✅ Exit 0, built in 26s |
+| `npm run lint` | ✅ Exit 0, no fixable warnings |
+| Django `manage.py check` | ✅ 0 issues (from previous session) |
+| Logo — PNG exists | ❌ `monvex-logo.png` not in `public/` — fallback SVG renders |
+| Logo — fallback renders | ✅ Purple gradient M SVG shows via `onError` — no broken icon |
+| Expanded sidebar | ✅ `w-64`, horizontal BrandHeader, wordmark + tagline visible |
+| Collapsed sidebar — clipping | ✅ Fixed: `w-20` with 44px logo, no clipping |
+| Collapsed sidebar — scrollbar | ✅ Fixed: `overflow-hidden` on nav |
+| Collapsed sidebar — tooltips | ✅ All nav items have `group-hover` tooltips |
+| Dashboard Row 1 (stat cards) | ✅ 4 cards, responsive 1→2→4 cols |
+| Dashboard Row 2 (transactions + actions) | ✅ 8+4 col split on `lg:grid-cols-12` |
+| Dashboard Row 3 (accounts full-width) | ✅ Independent row, 1→2→3→4 col grid |
+| Accounts empty state | ✅ Proper icon size, copy and button |
+| Navigation — all routes | ✅ Build confirms no broken imports; routes unchanged |
+| Responsive overflow | ✅ No horizontal overflow (`overflow-hidden` on `<aside>`, `min-w-0` on content) |
+| Mobile nav drawer | ✅ `w-64`, always expanded, unchanged |
+| Backend tests | ⏸ PENDING — blocked by port 5432 outbound network restriction (confirmed in Nov 9 session) |
+
+**7. Git Commit**
+
+Implementation commit: `beb5900`
+
+Message: "Phase 3.5: Sidebar redesign, dashboard layout fix, logo with fallback"
+
+PROMPTS.md documentation commit: (recorded after this commit — see below)
+
+**Remaining Issues**
+
+1. **`monvex-logo.png` must be placed manually** — copy the official brand PNG to `frontend/public/monvex-logo.png`. Until then the fallback SVG renders in its place. This is the correct implementation awaiting the binary asset.
+2. **`favicon-16.png` / `favicon-32.png` / `apple-touch-icon.png` are SVG content** — if real PNG favicons are required, generate them from the brand PNG using an image tool and replace the files.
+3. **Neon database port 5432 outbound blocked** — backend tests cannot run from this machine until the network restriction is resolved (see Nov 9 diagnosis).
