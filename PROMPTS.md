@@ -493,3 +493,112 @@ PROMPTS.md documentation commit: (recorded after this commit — see below)
 1. **`monvex-logo.png` must be placed manually** — copy the official brand PNG to `frontend/public/monvex-logo.png`. Until then the fallback SVG renders in its place. This is the correct implementation awaiting the binary asset.
 2. **`favicon-16.png` / `favicon-32.png` / `apple-touch-icon.png` are SVG content** — if real PNG favicons are required, generate them from the brand PNG using an image tool and replace the files.
 3. **Neon database port 5432 outbound blocked** — backend tests cannot run from this machine until the network restriction is resolved (see Nov 9 diagnosis).
+
+
+---
+
+## November 11, 2026
+
+### Phase 4 — Three-Role Authentication, Authorization and API Integration
+
+**1. Problems Identified**
+
+After a complete inspection of the backend models, permissions, URLs, management commands, frontend AuthContext, navConfig, routes, and API client:
+
+| Component | Status |
+|---|---|
+| User model with 3 roles | ✅ Correctly implemented (`Role.ADMIN`, `Role.ACCOUNT_HOLDER`, `Role.AUDITOR`) |
+| Permission classes (`IsAdmin`, `IsAuditor`, `IsAdminOrAuditor`, `IsOwner`) | ✅ Correctly implemented |
+| JWT authentication (login, refresh, session restore) | ✅ Correctly wired |
+| `/api/users/me/` returns `role` field | ✅ Confirmed from `UserProfileSerializer` |
+| Frontend `AuthContext` reads `user.role` | ✅ `isAdmin`, `isAuditor`, `isAccountHolder` derived correctly |
+| `navConfig.js` role-filtered navigation | ✅ All 3 roles have correct nav item sets |
+| `RoleRoute` guards (`/audit`, `/reconciliation`, `/users`) | ✅ Correctly implemented |
+| Backend authorization on audit/reconciliation/admin APIs | ✅ `IsAdminOrAuditor` and `IsAdmin` permission classes applied |
+| **MISSING: `provision_demo_users` command** | ❌ No command to create ADMIN/AUDITOR demo accounts |
+| **MISSING: Backend authorization tests** | ❌ No tests verifying role-based API access |
+| Neon DB port 5432 blocked from this machine | ❌ Tests cannot run (network issue, not code issue) |
+
+The frontend infrastructure for all three roles was already correctly implemented. The two gaps were: no provisioning command and no authorization tests.
+
+**2. Actual AI Prompt**
+
+> MONVEX Phase 4 — Three-role authentication, authorization, and API integration. Inspect the full backend and frontend. Identify why ADMIN and AUDITOR roles are missing or broken. Create a `provision_demo_users` management command that is idempotent, never hardcodes passwords, detects role conflicts, and prints the generated AUDITOR password once. Create brahma_kumar (ADMIN) and brahma_auditor (AUDITOR) demo accounts. Write 30 backend tests covering login, role-based API access, AUDITOR read-only enforcement, account ownership isolation, public registration security, and provisioning idempotency. Update PROMPTS.md. Commit separately.
+
+**3. AI-Generated Implementation**
+
+Files created:
+
+| File | Purpose |
+|---|---|
+| `backend/users/management/commands/provision_demo_users.py` | Idempotent provisioning command |
+| `backend/tests/test_role_authorization.py` | 30 backend authorization tests |
+
+No frontend changes were required — all three-role navigation, routing, and auth infrastructure was already correctly implemented.
+
+**4. Bugs and Security Issues Discovered**
+
+None in the existing code. The inspection confirmed all three roles, permission classes, JWT flow, and frontend guards were correctly implemented from earlier phases.
+
+**5. Corrections Applied**
+
+- Added `provision_demo_users` management command
+- Added 30 backend authorization tests
+
+**6. Backend Files Changed**
+
+| File | Change |
+|---|---|
+| `backend/users/management/commands/provision_demo_users.py` | New — idempotent ADMIN/AUDITOR provisioning |
+| `backend/tests/test_role_authorization.py` | New — 30 role authorization tests |
+
+**7. Demo Account Provisioning**
+
+Command: `python manage.py provision_demo_users --admin-password brahma123`
+
+| Account | Username | Role | Status |
+|---|---|---|---|
+| ADMIN | `brahma_kumar` | ADMIN | Provisioned when DB is reachable |
+| AUDITOR | `brahma_auditor` | AUDITOR | Provisioned when DB is reachable (auto-generated password printed once) |
+
+**Status:** Cannot be run until port 5432 outbound network block is resolved (see Nov 9 diagnosis).
+
+**8. API Verification**
+
+| Endpoint | Method | Auth | ADMIN | AUDITOR | ACCOUNT_HOLDER | Unauth |
+|---|---|---|---|---|---|---|
+| `/api/auth/token/` | POST | None | ✅ | ✅ | ✅ | N/A |
+| `/api/users/me/` | GET | Bearer | ✅ | ✅ | ✅ | 401 |
+| `/api/accounts/` | GET | Bearer | ✅ | ✅ | ✅ (own only) | 401 |
+| `/api/transactions/` | GET | Bearer | ✅ | ✅ | ✅ (own only) | 401 |
+| `/api/audit/` | GET | Bearer | ✅ | ✅ | 403 | 401 |
+| `/api/reconciliation/` | GET | Bearer | ✅ | ✅ | 403 | 401 |
+| `/api/admin/users/` | GET | Bearer | ✅ | 403 | 403 | 401 |
+| `/api/transactions/deposit/` | POST | Bearer | depends on account | 403/404 | ✅ (own accounts) | 401 |
+
+Verification is from code inspection. Live API tests are blocked by DB connectivity.
+
+**9. Test Results**
+
+| Suite | Collected | Status |
+|---|---|---|
+| `test_role_authorization.py` | 30 | BLOCKED — port 5432 outbound blocked |
+| `test_financial_integrity.py` | 26 (from Phase 2.1) | BLOCKED |
+| `test_idempotency.py` | 10 (from Phase 2.1) | BLOCKED |
+| `test_concurrency.py` | 4 (from Phase 2.1) | BLOCKED |
+| `test_immutability.py` | 14 (from Phase 2.1) | BLOCKED |
+| `npm run build` | — | ✅ Exit 0 |
+| `npm run lint` | — | ✅ Exit 0 |
+| `manage.py check` | — | ✅ 0 issues |
+
+**10. Remaining Blockers**
+
+1. **Neon port 5432 blocked** — All database-requiring tests are blocked. The command `provision_demo_users` cannot run until the network allows outbound port 5432. Same for all backend tests.
+2. **`monvex-logo.png` not placed** — The official PNG asset must be placed at `frontend/public/monvex-logo.png`. The fallback SVG renders in its absence.
+3. **Demo accounts not in DB** — `brahma_kumar` and `brahma_auditor` have not been created because the DB is unreachable.
+
+**11. Git Commits**
+
+Implementation: `ce03e5b` — "feat(auth): implement three-role provisioning and authorization tests"
+
+PROMPTS.md documentation: (this commit — recorded after the implementation commit)
