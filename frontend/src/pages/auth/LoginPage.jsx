@@ -1,17 +1,9 @@
 /**
  * pages/auth/LoginPage.jsx
  *
- * MONVEX login page — full-page background image + centered glass form card.
- *
- * Background: /monvex-login-bg.png (served from frontend/public/)
- *   - cover + center so the image fills every viewport without distortion
- *   - Works on Vercel because Vite copies public/ to dist/ as-is
- *
- * Layout:
- *   - Full-screen background image
- *   - Semi-transparent glass card centered over it
- *   - MonvexLogo + wordmark above the form
- *   - Login form with username, password, error handling
+ * Two-panel layout:
+ *   Left  — AuthBrandPanel (premium fintech brand presentation)
+ *   Right — Glass login card over the dark gradient background
  */
 
 import { useState } from 'react'
@@ -19,8 +11,9 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { LogIn, AlertCircle } from 'lucide-react'
 
 import { useAuth } from '../../context/AuthContext'
-import { Button, Input, PasswordInput, MonvexLogo } from '../../components/ui'
+import { MonvexLogo } from '../../components/ui'
 import { ApiError } from '../../lib/api'
+import AuthBrandPanel from '../../components/auth/AuthBrandPanel'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -38,8 +31,8 @@ export default function LoginPage() {
 
   function handleChange(e) {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }))
+    setFormData((p) => ({ ...p, [name]: value }))
+    if (errors[name]) setErrors((p) => ({ ...p, [name]: undefined }))
   }
 
   function validate() {
@@ -52,8 +45,8 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setFormError(null)
-    const fieldErrs = validate()
-    if (Object.keys(fieldErrs).length > 0) { setErrors(fieldErrs); return }
+    const errs = validate()
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
 
     setIsSubmitting(true)
     try {
@@ -67,52 +60,56 @@ export default function LoginPage() {
   }
 
   return (
-    /*
-     * Root container — full-screen background image.
-     *
-     * background-image:  /monvex-login-bg.png  (from public/)
-     * background-size:   cover   — fills the viewport without letter-boxing
-     * background-position: center — keeps the subject centred at any size
-     * background-repeat: no-repeat — never tiles
-     *
-     * The inline style is used intentionally so Tailwind's purge does not
-     * remove the dynamic image reference at build time.
-     */
     <div
-      className="relative flex min-h-screen flex-col items-center justify-center px-4 py-12"
+      className="flex min-h-screen"
       style={{
-        backgroundImage:    'url(/monvex-login-bg.png)',
-        backgroundSize:     'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat:   'no-repeat',
+        background:
+          'linear-gradient(135deg, #05051a 0%, #0d0540 40%, #1a0860 70%, #0a0535 100%)',
       }}
     >
-      {/* Dark overlay so the form remains readable over any background */}
-      <div className="absolute inset-0 bg-navy-950/60" aria-hidden="true" />
+      {/* ── Left brand panel ── */}
+      <AuthBrandPanel />
 
-      {/* Form card — sits above the overlay */}
-      <div className="relative z-10 w-full max-w-sm">
+      {/* ── Right: form ── */}
+      <div className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-10">
 
-        {/* Logo + wordmark */}
-        <div className="mb-8 flex flex-col items-center gap-3">
-          <MonvexLogo size={52} />
-          <div className="text-center">
-            <p className="text-xl font-bold tracking-widest text-white">MONVEX</p>
-            <p className="text-xs text-indigo-300">Move Money. Maintain Trust.</p>
-          </div>
+        {/* Mobile logo — hidden on lg+ (brand panel covers it) */}
+        <div className="mb-8 flex flex-col items-center gap-2 lg:hidden">
+          <MonvexLogo size={48} />
+          <span className="text-lg font-bold tracking-widest text-white">MONVEX</span>
+          <span className="text-xs text-indigo-300">Move Money. Maintain Trust.</span>
         </div>
 
         {/* Glass card */}
-        <div className="rounded-2xl border border-white/10 bg-white/8 p-8 shadow-2xl backdrop-blur-md">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-white">Welcome back</h1>
-            <p className="mt-1 text-sm text-slate-300">Sign in to your account</p>
+        <div
+          className="w-full max-w-sm rounded-2xl p-8 shadow-2xl"
+          style={{
+            background: 'rgba(15,10,50,0.70)',
+            backdropFilter: 'blur(18px)',
+            WebkitBackdropFilter: 'blur(18px)',
+            border: '1px solid rgba(139,92,246,0.22)',
+          }}
+        >
+          <div className="mb-7">
+            <h2
+              className="font-bold text-white"
+              style={{ fontSize: '26px', lineHeight: 1.2 }}
+            >
+              Welcome back
+            </h2>
+            <p className="mt-1.5 text-sm text-indigo-300">
+              Sign in to your MONVEX account
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
             {formError && (
               <div
-                className="flex items-start gap-2.5 rounded-lg border border-red-400/30 bg-red-900/30 px-4 py-3 text-sm text-red-300"
+                className="flex items-start gap-2.5 rounded-lg px-4 py-3 text-sm text-red-300"
+                style={{
+                  background: 'rgba(220,38,38,0.15)',
+                  border: '1px solid rgba(220,38,38,0.3)',
+                }}
                 role="alert"
               >
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -120,59 +117,37 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Username input — dark-theme variant */}
-            <div>
-              <label
-                htmlFor="login-username"
-                className="mb-1.5 block text-sm font-medium text-slate-200"
-              >
-                Username
-              </label>
-              <input
-                id="login-username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                required
-                autoFocus
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="your.username"
-                className="w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2.5 text-sm text-white placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400/40"
-              />
-              {errors.username && (
-                <p className="mt-1 text-xs text-red-400">{errors.username}</p>
-              )}
-            </div>
+            <DarkField
+              label="Username"
+              id="login-username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              autoFocus
+              required
+              placeholder="your.username"
+              value={formData.username}
+              onChange={handleChange}
+              error={errors.username}
+            />
 
-            {/* Password input — dark-theme variant */}
-            <div>
-              <label
-                htmlFor="login-password"
-                className="mb-1.5 block text-sm font-medium text-slate-200"
-              >
-                Password
-              </label>
-              <input
-                id="login-password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full rounded-lg border border-white/15 bg-white/10 px-3 py-2.5 text-sm text-white placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400/40"
-              />
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-400">{errors.password}</p>
-              )}
-            </div>
+            <DarkField
+              label="Password"
+              id="login-password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              error={errors.password}
+            />
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 active:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>
@@ -188,21 +163,42 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-5 text-center text-sm text-slate-400">
+          <p className="mt-6 text-center text-sm text-slate-400">
             Don't have an account?{' '}
-            <Link
-              to="/register"
-              className="font-medium text-indigo-400 hover:text-indigo-300"
-            >
+            <Link to="/register" className="font-medium text-indigo-400 hover:text-indigo-300">
               Create one
             </Link>
           </p>
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-500">
-          © {CURRENT_YEAR} MONVEX. All rights reserved.
+        <p className="mt-8 text-center text-xs" style={{ color: 'rgba(139,92,246,0.35)' }}>
+          © {CURRENT_YEAR} MONVEX Financial Systems
         </p>
       </div>
+    </div>
+  )
+}
+
+// ── Reusable dark-theme input ─────────────────────────────────────────────────
+
+function DarkField({ label, id, error, ...inputProps }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-300">
+        {label}
+      </label>
+      <input
+        id={id}
+        style={{
+          background: 'rgba(255,255,255,0.07)',
+          border: error
+            ? '1px solid rgba(248,113,113,0.6)'
+            : '1px solid rgba(139,92,246,0.25)',
+        }}
+        className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400/40"
+        {...inputProps}
+      />
+      {error && <p className="mt-1.5 text-xs text-red-400">{error}</p>}
     </div>
   )
 }
