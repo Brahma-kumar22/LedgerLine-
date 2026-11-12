@@ -95,21 +95,26 @@ export default function AuthBrandPanel() {
             </span>
           </div>
 
-          {/* Main heading */}
-          <div className="mt-12 xl:mt-16">
+          {/* Main heading — bright white, moved up closer to logo */}
+          <div className="mt-6 xl:mt-8">
             <h1
-              className="font-bold leading-tight text-white"
-              style={{ fontSize: 'clamp(36px, 4.5vw, 48px)', lineHeight: 1.15 }}
+              className="font-bold leading-tight"
+              style={{
+                fontSize: 'clamp(36px, 4.5vw, 48px)',
+                lineHeight: 1.15,
+                color: '#ffffff',
+                textShadow: '0 0 40px rgba(139,92,246,0.5)',
+              }}
             >
               Move Money.<br />Maintain Trust.
             </h1>
 
             {/* Sub-heading */}
             <p
-              className="mt-5 font-semibold"
+              className="mt-5 font-bold"
               style={{
                 fontSize: 'clamp(17px, 2vw, 20px)',
-                color: '#c4b5fd',
+                color: '#e9d5ff',
                 lineHeight: 1.4,
               }}
             >
@@ -121,7 +126,7 @@ export default function AuthBrandPanel() {
               className="mt-5"
               style={{
                 fontSize: 'clamp(14px, 1.5vw, 17px)',
-                color: '#a78bfa',
+                color: '#c4b5fd',
                 lineHeight: 1.75,
                 maxWidth: '340px',
               }}
@@ -160,9 +165,10 @@ export default function AuthBrandPanel() {
                     {label}
                   </p>
                   <p
+                    className="font-medium"
                     style={{
                       fontSize: 'clamp(12px, 1.3vw, 14px)',
-                      color: '#7c6fba',
+                      color: '#c4b5fd',
                       lineHeight: 1.5,
                       marginTop: '3px',
                     }}

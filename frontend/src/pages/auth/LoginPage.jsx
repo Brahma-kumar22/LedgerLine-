@@ -92,12 +92,12 @@ export default function LoginPage() {
         >
           <div className="mb-7">
             <h2
-              className="font-bold text-white"
-              style={{ fontSize: '26px', lineHeight: 1.2 }}
+              className="font-bold"
+              style={{ fontSize: '26px', lineHeight: 1.2, color: '#ffffff' }}
             >
               Welcome back
             </h2>
-            <p className="mt-1.5 text-sm text-indigo-300">
+            <p className="mt-1.5 text-sm" style={{ color: '#c4b5fd' }}>
               Sign in to your MONVEX account
             </p>
           </div>

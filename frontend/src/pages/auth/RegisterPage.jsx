@@ -143,12 +143,12 @@ export default function RegisterPage() {
         >
           <div className="mb-6">
             <h2
-              className="font-bold text-white"
-              style={{ fontSize: '26px', lineHeight: 1.2 }}
+              className="font-bold"
+              style={{ fontSize: '26px', lineHeight: 1.2, color: '#ffffff' }}
             >
               Create your account
             </h2>
-            <p className="mt-1.5 text-sm text-indigo-300">
+            <p className="mt-1.5 text-sm" style={{ color: '#c4b5fd' }}>
               Join MONVEX as an account holder
             </p>
           </div>
