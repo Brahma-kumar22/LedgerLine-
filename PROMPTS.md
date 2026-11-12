@@ -602,3 +602,90 @@ Verification is from code inspection. Live API tests are blocked by DB connectiv
 Implementation: `ce03e5b` — "feat(auth): implement three-role provisioning and authorization tests"
 
 PROMPTS.md documentation: (this commit — recorded after the implementation commit)
+
+
+---
+
+## November 12, 2026
+
+### Phase 5 — Role-Based User Management and Account Provisioning
+
+**1. Problems Identified**
+
+| Component | Gap |
+|---|---|
+| `GET /api/admin/users/` | Existed — read-only, ADMIN only |
+| `POST /api/admin/users/` | Missing — no create endpoint |
+| `PATCH /api/admin/users/{id}/` | Missing — no update endpoint |
+| `AdminUserCreateSerializer` | Missing |
+| `AdminUserUpdateSerializer` | Missing |
+| AUDITOR access to `/users` route | Blocked — route was ADMIN only |
+| AUDITOR in navConfig Users item | Missing — AUDITOR couldn't see Users nav |
+| `api.js` create/update methods | Missing |
+| Frontend create user modal | Missing — only a read-only list existed |
+| AUDITOR role restriction on create | Not implemented |
+
+**2. AI Prompt**
+
+> Phase 5: Implement fully functional User Management for ADMIN and AUDITOR. ADMIN can create any role, AUDITOR can create ACCOUNT_HOLDER and AUDITOR only. Backend enforces all permissions. Frontend shows Create User modal with role selector, AUDITOR sees restricted roles, ADMIN sees all three. Add Edit modal for ADMIN. Write AuditLog entries on user creation and role changes. Build and lint must pass.
+
+**3. AI-Generated Implementation**
+
+**Backend files changed:**
+
+| File | Change |
+|---|---|
+| `backend/users/admin_serializers.py` | Added `AdminUserCreateSerializer` (write-only password, Django validators) and `AdminUserUpdateSerializer` (role + is_active) |
+| `backend/users/admin_views.py` | `AdminUserListCreateView`: GET (ADMIN+AUDITOR) and POST with role restriction. `AdminUserDetailUpdateView`: GET detail + PATCH (ADMIN only). Both write AuditLog entries. |
+| `backend/users/admin_urls.py` | Updated routes to point to new view classes |
+
+**Frontend files changed:**
+
+| File | Change |
+|---|---|
+| `frontend/src/lib/api.js` | Added `admin.users.create()` and `admin.users.update()` |
+| `frontend/src/components/layout/navConfig.js` | Users item now includes AUDITOR role |
+| `frontend/src/App.jsx` | `/users` route now accessible to `['ADMIN', 'AUDITOR']` |
+| `frontend/src/pages/AdminUsersPage.jsx` | Full rewrite: CreateUserModal, UpdateUserModal, role-aware UI |
+
+**4. Permission Model Implemented**
+
+| Action | ADMIN | AUDITOR |
+|---|---|---|
+| List users | ✅ | ✅ |
+| View detail | ✅ | ✅ |
+| Create ACCOUNT_HOLDER | ✅ | ✅ |
+| Create AUDITOR | ✅ | ✅ |
+| Create ADMIN | ✅ | ❌ 403 |
+| Update role/status | ✅ | ❌ 403 |
+| See Edit button | ✅ | ❌ Hidden |
+
+**5. Security Notes**
+
+- Password validation runs Django's configured validators server-side
+- Passwords are write-only — never returned in any response
+- AUDITOR attempting to create ADMIN receives `403 Forbidden` from backend
+- Frontend hides the Edit button for AUDITOR — backend still enforces independently
+- AuditLog entries written for every user creation and role/status change
+
+**6. Verification**
+
+| Check | Result |
+|---|---|
+| `npm run build` | ✅ Exit 0 |
+| `npm run lint` | ✅ Exit 0 (0 fixable warnings) |
+| `manage.py check` | ✅ 0 issues |
+| Backend tests | ⏸ BLOCKED — Neon port 5432 still unreachable |
+| Live end-to-end | ⏸ BLOCKED — DB unreachable from this machine |
+
+**7. Git Commit**
+
+Implementation: `1fbf950` — "feat(users): Phase 5 — role-based user management with create and update"
+
+PROMPTS.md documentation: (this commit — recorded after)
+
+**8. Remaining Blockers**
+
+1. **Neon port 5432 blocked** — All DB operations require network access. Connect via VPN or mobile hotspot.
+2. **`monvex-logo.png` not placed** — Copy official PNG to `frontend/public/monvex-logo.png`.
+3. **Demo accounts not in DB** — Run `python manage.py provision_demo_users --admin-password brahma123` once DB is reachable.
