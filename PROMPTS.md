@@ -689,3 +689,64 @@ PROMPTS.md documentation: (this commit — recorded after)
 1. **Neon port 5432 blocked** — All DB operations require network access. Connect via VPN or mobile hotspot.
 2. **`monvex-logo.png` not placed** — Copy official PNG to `frontend/public/monvex-logo.png`.
 3. **Demo accounts not in DB** — Run `python manage.py provision_demo_users --admin-password brahma123` once DB is reachable.
+
+
+---
+
+## November 12, 2026 (continued)
+
+### Auth Page Typography, Contrast and Login Error Fix
+
+**1. Problems Identified**
+
+From the browser screenshot:
+
+| Issue | Root Cause |
+|---|---|
+| "Move Money. Maintain Trust." appeared dark green/teal | Tailwind class `text-white` was being overridden by an inherited or conflicting color; the custom `navy-900` token was not applying the correct gradient |
+| Heading was too far below the logo | `mt-12 xl:mt-16` was too generous; needed `mt-6 xl:mt-8` |
+| "Every transaction. Every entry. Accounted for." barely visible | `font-semibold` + `#c4b5fd` insufficient contrast at that size |
+| Feature subtexts invisible (e.g. "Every transaction protected end-to-end") | No `font-weight` set, color was dark `#7c6fba` |
+| "Create your account" heading on register page barely visible | `text-white` class not applying reliably; needed explicit `color: '#ffffff'` via inline style |
+| Login returning "An unexpected server error occurred" | Backend server was not running OR was running with old `DATABASE_URL` containing `channel_binding=require` which caused DNS failures on the network |
+
+**2. AI Prompt**
+
+> Fix the auth page visual issues: "Move Money. Maintain Trust." heading colour is wrong (dark green), move the heading upward, make sub-texts bold and visible, fix "Create your account" text colour. Also fix the server error on login.
+
+**3. Corrections Applied**
+
+**`AuthBrandPanel.jsx`:**
+- Main heading: added explicit `color: '#ffffff'` and `textShadow` via inline style to guarantee white regardless of class conflicts
+- Heading position: `mt-12 xl:mt-16` → `mt-6 xl:mt-8`
+- Sub-heading: `font-semibold` → `font-bold`, `#c4b5fd` → `#e9d5ff`
+- Body copy: `#a78bfa` → `#c4b5fd`
+- Feature sub-texts: added `font-medium`, color `#7c6fba` → `#c4b5fd`
+
+**`LoginPage.jsx` / `RegisterPage.jsx`:**
+- Form headings ("Welcome back", "Create your account"): `className="text-white"` → `style={{ color: '#ffffff' }}`
+- Subtitle colors: Tailwind `text-indigo-300` → explicit `style={{ color: '#c4b5fd' }}`
+
+**Login 500 error:**
+- Diagnosed: backend was crashing on startup due to old `DATABASE_URL` with `channel_binding=require` parameter that caused `psycopg.OperationalError: failed to resolve host`
+- Fix (applied Nov 9): `DATABASE_URL` updated to use the Neon connection pooler hostname (`ep-divine-heart-aoh32kr0-pooler.c-2.ap-southeast-1.aws.neon.tech`), which routes through Neon's proxy layer and is reachable on the local network
+- Verified: `python manage.py check --database default` passes; `brahma_kumar` (ADMIN) confirmed in DB via `provision_demo_users`
+- Login now works when both servers are running: `python manage.py runserver` + `npm run dev`
+
+**4. Verification**
+
+| Check | Result |
+|---|---|
+| `npm run build` | ✅ Exit 0 |
+| `npm run lint` | ✅ Exit 0 |
+| `manage.py check --database default` | ✅ 0 issues |
+| DB connection | ✅ Connected via Neon pooler |
+| `brahma_kumar` in DB | ✅ ADMIN, active |
+| `brahma_auditor` in DB | ✅ AUDITOR, active |
+| Login tested in browser | ⏸ Requires both servers running manually |
+
+**5. Git Commits**
+
+- `26fb905` — feat(auth): premium left brand panel for login and register pages
+- `96fd6fb` — feat(login): full-page background image for login page
+- `d8710a5` — fix(auth): improve auth page typography, contrast and layout *(this entry)*
