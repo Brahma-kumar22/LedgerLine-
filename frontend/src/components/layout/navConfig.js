@@ -56,7 +56,7 @@ export const NAV_ITEMS = [
     label: 'Users',
     path: '/users',
     icon: Users,
-    roles: ['ADMIN'],
+    roles: ['ADMIN', 'AUDITOR'],
   },
   {
     label: 'Reconciliation',

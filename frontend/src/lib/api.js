@@ -480,7 +480,7 @@ export const apiClient = {
   },
 
   /**
-   * Admin user management — ADMIN only.
+   * Admin user management — ADMIN and AUDITOR (role-restricted create).
    */
   admin: {
     users: {
@@ -501,6 +501,30 @@ export const apiClient = {
        */
       async get(id) {
         const { data } = await api.get(`/api/admin/users/${id}/`)
+        return data
+      },
+
+      /**
+       * POST /api/admin/users/
+       * Create a new user. ADMIN can create any role.
+       * AUDITOR can create ACCOUNT_HOLDER and AUDITOR only.
+       * @param {{username, email, password, role, first_name?, last_name?, is_active?}} payload
+       * @returns {Promise<object>} created user
+       */
+      async create(payload) {
+        const { data } = await api.post('/api/admin/users/', payload)
+        return data
+      },
+
+      /**
+       * PATCH /api/admin/users/{id}/
+       * Update role and/or is_active. ADMIN only.
+       * @param {string} id
+       * @param {{role?: string, is_active?: boolean, first_name?: string, last_name?: string}} payload
+       * @returns {Promise<object>} updated user
+       */
+      async update(id, payload) {
+        const { data } = await api.patch(`/api/admin/users/${id}/`, payload)
         return data
       },
     },

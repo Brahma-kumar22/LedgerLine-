@@ -64,7 +64,7 @@ function App() {
                 </Route>
 
                 {/* Admin only */}
-                <Route element={<RoleRoute roles={['ADMIN']} />}>
+                <Route element={<RoleRoute roles={['ADMIN', 'AUDITOR']} />}>
                   <Route path="/users" element={<AdminUsersPage />} />
                 </Route>
               </Route>
