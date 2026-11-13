@@ -2,9 +2,7 @@
  * pages/auth/RegisterPage.jsx
  *
  * Minimal centered auth layout — matches LoginPage exactly.
- * - Full-screen background image
- * - Single centered glass card
- * - All auth logic, validation and APIs unchanged
+ * AuthBackground SVG component bundled inside the app by Vite.
  */
 
 import { useState } from 'react'
@@ -14,6 +12,7 @@ import { UserPlus, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { MonvexLogo } from '../../components/ui'
 import { ApiError } from '../../lib/api'
+import AuthBackground from '../../components/auth/AuthBackground'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -82,72 +81,49 @@ export default function RegisterPage() {
     }
   }
 
-  /* ── Shared page wrapper ── */
-  const PageWrapper = ({ children }) => (
-    <div
-      className="relative flex min-h-screen items-center justify-center px-4 py-8 overflow-hidden"
-      style={{
-        backgroundImage:    'url(/monvex-login-bg.png)',
-        backgroundSize:     'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat:   'no-repeat',
-        backgroundColor:    '#07061f',
-      }}
-    >
-      <div className="absolute inset-0" style={{ background: 'rgba(5,4,28,0.55)' }} aria-hidden="true" />
-      {children}
-      <p className="absolute bottom-4 text-center w-full" style={{ fontSize: '11px', color: 'rgba(139,92,246,0.35)' }}>
-        © {CURRENT_YEAR} MONVEX Financial Systems
-      </p>
-    </div>
-  )
+  /* ── Shared card style ── */
+  const cardStyle = {
+    background:          'rgba(14,10,48,0.75)',
+    backdropFilter:      'blur(22px)',
+    WebkitBackdropFilter:'blur(22px)',
+    border:              '1px solid rgba(139,92,246,0.25)',
+    borderRadius:        '20px',
+    padding:             '36px 32px',
+    boxShadow:           '0 25px 60px rgba(0,0,0,0.55)',
+    width:               '100%',
+    maxWidth:            '420px',
+  }
 
   /* ── Success state ── */
   if (success) {
     return (
-      <PageWrapper>
-        <div
-          className="relative z-10 flex flex-col items-center gap-4 text-center"
-          style={{
-            background:          'rgba(14,10,48,0.72)',
-            backdropFilter:      'blur(20px)',
-            WebkitBackdropFilter:'blur(20px)',
-            border:              '1px solid rgba(139,92,246,0.25)',
-            borderRadius:        '20px',
-            padding:             '40px 36px',
-            maxWidth:            '380px',
-            width:               '100%',
-          }}
-        >
+      <div
+        className="relative flex min-h-screen items-center justify-center overflow-hidden"
+        style={{ backgroundColor: '#06052b' }}
+      >
+        <AuthBackground />
+        <div className="relative z-10 flex flex-col items-center gap-4 text-center" style={cardStyle}>
           <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <CheckCircle2 style={{ width: 28, height: 28, color: '#34d399' }} />
           </div>
           <div>
             <p style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff' }}>Account created</p>
-            <p style={{ fontSize: '14px', color: '#94a3b8', marginTop: '8px' }}>
-              Your MONVEX account is ready. Redirecting to sign in…
-            </p>
+            <p style={{ fontSize: '14px', color: '#94a3b8', marginTop: '8px' }}>Redirecting to sign in…</p>
           </div>
         </div>
-      </PageWrapper>
+      </div>
     )
   }
 
-  /* ── Card styles (shared) ── */
-  const cardStyle = {
-    background:          'rgba(14,10,48,0.72)',
-    backdropFilter:      'blur(20px)',
-    WebkitBackdropFilter:'blur(20px)',
-    border:              '1px solid rgba(139,92,246,0.25)',
-    borderRadius:        '20px',
-    padding:             '36px 32px',
-    boxShadow:           '0 25px 60px rgba(0,0,0,0.5)',
-    width:               '100%',
-    maxWidth:            '420px',
-  }
-
+  /* ── Registration form ── */
   return (
-    <PageWrapper>
+    <div
+      className="relative flex min-h-screen items-center justify-center px-4 py-8 overflow-hidden"
+      style={{ backgroundColor: '#06052b' }}
+    >
+      {/* SVG background — bundled inside the app, deploys with Vercel */}
+      <AuthBackground />
+
       <div className="relative z-10" style={cardStyle}>
 
         {/* Logo + brand */}
@@ -204,7 +180,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
+            className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
             style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', fontSize: '15px' }}
           >
             {isSubmitting ? (
@@ -226,7 +202,14 @@ export default function RegisterPage() {
           <Link to="/login" style={{ color: '#a78bfa', fontWeight: 500 }}>Sign in</Link>
         </p>
       </div>
-    </PageWrapper>
+
+      <p
+        className="absolute bottom-4 text-center w-full"
+        style={{ fontSize: '11px', color: 'rgba(139,92,246,0.35)', pointerEvents: 'none' }}
+      >
+        © {CURRENT_YEAR} MONVEX Financial Systems
+      </p>
+    </div>
   )
 }
 
@@ -294,10 +277,7 @@ function PasswordField({ label, name, required, error, hint, show, onToggle, ...
             color: '#c4b5fd', display: 'flex', alignItems: 'center',
           }}
         >
-          {show
-            ? <EyeOff style={{ width: '16px', height: '16px' }} />
-            : <Eye    style={{ width: '16px', height: '16px' }} />
-          }
+          {show ? <EyeOff style={{ width: '16px', height: '16px' }} /> : <Eye style={{ width: '16px', height: '16px' }} />}
         </button>
       </div>
       {error && <p style={{ marginTop: '4px', fontSize: '12px', color: '#f87171' }}>{error}</p>}
