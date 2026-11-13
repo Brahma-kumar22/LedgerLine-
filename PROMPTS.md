@@ -806,3 +806,58 @@ From the browser screenshot:
 Implementation: `90842c2` — "feat(auth): minimal centered auth layout — remove left panel, center card"
 
 PROMPTS.md documentation: (this commit)
+
+
+---
+
+## November 13, 2026 (continued)
+
+### Auth Background: Inline SVG Component — Vercel Deployment Ready
+
+**1. Problem**
+
+The background was referenced as `url(/monvex-login-bg.png)` — a file in `public/` that doesn't exist in the repository. On Vercel deployment the image would be missing because binary assets can't be committed as code.
+
+**2. Requirement**
+
+Store the background inside the application so it deploys automatically with the code — no external file, no CDN, no manual upload required.
+
+**3. Solution**
+
+Created `frontend/src/components/auth/AuthBackground.jsx` — a pure React SVG component that faithfully reproduces the MONVEX brand background image:
+
+| Element | Implementation |
+|---|---|
+| Base gradient | Deep navy/indigo `#06052b → #120863` linearGradient |
+| Purple glow blobs | radialGradient overlays on the base rect |
+| Circular arc (left) | `<circle>` with violet stroke, behind temple |
+| Greek temple | 7-column silhouette with pediment, steps, glow ellipse |
+| Glow horizon line | Bright lavender `<line>` at temple base |
+| Temple reflection | `scale(1, -0.22)` transform group |
+| M lettermark (right) | 5 rounded rects forming the M shape with cross-stroke |
+| Wave fills (bottom-right) | 2 `<path>` fills with purple gradient |
+| Wave lines | 3 stroked paths in lavender/violet |
+| Sparkle lines (top) | 5 short diagonal accent lines |
+
+Vite bundles this component into the JS chunk — zero runtime network requests, zero missing asset errors on Vercel.
+
+**4. Bug fixed during this session**
+
+In the previous session's `str_replace` operation, the `import AuthBackground from '...'` statement landed inside the `export default function LoginPage()` body, causing:
+```
+error: 'import statement' declaration can only be used at the top level of a module
+```
+Fixed by rewriting both files from scratch with correct module-level imports.
+
+**5. Verification**
+
+| Check | Result |
+|---|---|
+| `npm run build` | ✅ Exit 0 (596ms) |
+| `npm run lint` | ✅ Exit 0 |
+| No external image file needed | ✅ Background is pure SVG inside JS bundle |
+| Auth logic unchanged | ✅ All imports, state, validation and API calls identical |
+
+**6. Git Commit**
+
+`694f278` — "feat(auth): inline SVG background — no external image file, Vercel-ready"
