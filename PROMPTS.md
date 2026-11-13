@@ -750,3 +750,59 @@ From the browser screenshot:
 - `26fb905` — feat(auth): premium left brand panel for login and register pages
 - `96fd6fb` — feat(login): full-page background image for login page
 - `d8710a5` — fix(auth): improve auth page typography, contrast and layout *(this entry)*
+
+
+---
+
+## November 13, 2026
+
+### Auth Pages: Minimal Centered Layout Redesign
+
+**1. Problems Identified**
+
+From the browser screenshot:
+- Left marketing section dominated the screen (40% width), overshadowing the form
+- Background image was not being used as a full-screen background
+- Eye icon on password inputs was not visible (dark icon on dark background)
+- Left panel content and form card had inconsistent visual weight
+
+**2. AI Prompt**
+
+> Redesign both Login and Register pages with a minimal centered auth layout. Remove the entire left marketing section. Use the locally stored background image as a full-screen background (cover + center). Center the form card both horizontally and vertically. Place the MONVEX logo at the top of the card. Glass-style card with backdrop blur. Fix eye icon visibility — white/lavender on dark inputs. Keep all auth logic, validation and APIs unchanged.
+
+**3. Changes Implemented**
+
+| File | Change |
+|---|---|
+| `frontend/src/pages/auth/LoginPage.jsx` | Complete rewrite — removed AuthBrandPanel, full-screen bg, centered card |
+| `frontend/src/pages/auth/RegisterPage.jsx` | Complete rewrite — same layout, both password fields with independent show/hide |
+
+**4. Design Details**
+
+- Background: `url(/monvex-login-bg.png)` cover+center + `rgba(5,4,28,0.55)` overlay; fallback `#07061f`
+- Card: `rgba(14,10,48,0.72)`, `backdrop-filter: blur(20px)`, `border: 1px solid rgba(139,92,246,0.25)`, `border-radius: 20px`
+- Logo: `MonvexLogo` size 52px (login) / 48px (register) + wordmark
+- Form labels: `#c4b5fd` lavender, 13px
+- Inputs: `rgba(255,255,255,0.07)` background, `#ffffff` text, indigo border on focus
+- Eye icons: `color: #c4b5fd` — clearly visible against dark inputs; both Eye and EyeOff states work
+- Submit button: `linear-gradient(135deg, #4f46e5, #7c3aed)` indigo-to-violet
+- All auth logic (login, register, validation, error display) completely unchanged
+
+**5. Verification**
+
+| Check | Result |
+|---|---|
+| `npm run build` | ✅ Exit 0 |
+| `npm run lint` | ✅ Exit 0 |
+| Left panel removed | ✅ Confirmed — no AuthBrandPanel import |
+| Background image referenced | ✅ `url(/monvex-login-bg.png)` in root div |
+| Card centered | ✅ `items-center justify-center` on full-height wrapper |
+| Eye icon visibility | ✅ `color: #c4b5fd` via inline style on both pages |
+| Auth APIs unchanged | ✅ Same `login()`, `register()` calls |
+| Responsive | ✅ `px-4 py-8`, `overflow-hidden`, `max-w-sm` / `max-w-420px` |
+
+**6. Git Commit**
+
+Implementation: `90842c2` — "feat(auth): minimal centered auth layout — remove left panel, center card"
+
+PROMPTS.md documentation: (this commit)
